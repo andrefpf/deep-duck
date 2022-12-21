@@ -163,7 +163,10 @@ impl fmt::Debug for Board {
         let mut string = String::with_capacity(64);
 
         for i in (0..8).rev() {
+            string.push_str(&format!("{} ", i + 1));
+
             for j in 0..8 {
+
                 let square = self.get_piece(Position{x:j, y:i});
                 let representation = match square {
                     Some(piece) => piece.utf8_repr(),
@@ -174,6 +177,7 @@ impl fmt::Debug for Board {
             }
             string.push('\n');
         }
+        string.push_str("  A B C D E F G H");
 
         write!(f, "{}", &string)
     }
