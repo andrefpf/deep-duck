@@ -13,6 +13,7 @@ struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
+    active_piece: Color,
     white_castle: Castle,
     black_castle: Castle,
 }
@@ -27,41 +28,117 @@ impl Castle {
 }
 
 impl Board {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Board {
             data: [None; 64],
+            active_piece: Color::White,
             white_castle: Castle::new(),
             black_castle: Castle::new(),
         }
     }
 
-    pub fn arranged() -> Self {
+    pub fn from_fen(notation: &str) -> Self {
         let mut board = Board::new();
-        
-        board.set_piece(Position{x:0, y:0}, Some(Piece::Rook(Color::White)));
-        board.set_piece(Position{x:1, y:0}, Some(Piece::Knight(Color::White)));
-        board.set_piece(Position{x:2, y:0}, Some(Piece::Bishop(Color::White)));
-        board.set_piece(Position{x:3, y:0}, Some(Piece::Queen(Color::White)));
-        board.set_piece(Position{x:4, y:0}, Some(Piece::King(Color::White)));
-        board.set_piece(Position{x:5, y:0}, Some(Piece::Bishop(Color::White)));
-        board.set_piece(Position{x:6, y:0}, Some(Piece::Knight(Color::White)));
-        board.set_piece(Position{x:7, y:0}, Some(Piece::Rook(Color::White)));
-        
-        for i in 0..8 {
-            board.set_piece(Position{x:i, y:1}, Some(Piece::Pawn(Color::White)));
-            board.set_piece(Position{x:i, y:6}, Some(Piece::Pawn(Color::Black)));
+        let mut x = 0;
+        let mut y = 0;
+
+        for c in notation.chars() {
+            match c {
+                ' ' => break,
+
+                '/' => {
+                    x = 0;
+                    y = y + 1;
+                },
+
+                '1'..='8' => {
+                    let int_c = c as usize - 0x30;
+                    x = x + int_c;
+                },
+                
+                _ => {
+                    board.set_piece(Position{x, y:(7-y)}, Piece::from_fen(c));
+                    x = x + 1;
+                }
+            }
         }
 
-        board.set_piece(Position{x:0, y:7}, Some(Piece::Rook(Color::Black)));
-        board.set_piece(Position{x:1, y:7}, Some(Piece::Knight(Color::Black)));
-        board.set_piece(Position{x:2, y:7}, Some(Piece::Bishop(Color::Black)));
-        board.set_piece(Position{x:3, y:7}, Some(Piece::Queen(Color::Black)));
-        board.set_piece(Position{x:4, y:7}, Some(Piece::King(Color::Black)));
-        board.set_piece(Position{x:5, y:7}, Some(Piece::Bishop(Color::Black)));
-        board.set_piece(Position{x:6, y:7}, Some(Piece::Knight(Color::Black)));
-        board.set_piece(Position{x:7, y:7}, Some(Piece::Rook(Color::Black)));
-
         board
+    }
+    
+    pub fn arranged() -> Self {
+        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board
+    }
+
+    fn pieces_fen(&self) -> String {
+        let mut notation = String::new();
+        let mut counter = 0;
+
+        for i in (0..8).rev() {
+            counter = 0;
+            for j in 0..8 {
+                match self.get_piece(Position{x:j, y:i}) {
+                    Some(piece) => {
+                        if counter > 0 {
+                            notation.push_str(&format!("{}", counter));
+                            counter = 0;
+                        }
+                        notation.push(piece.fen_repr());
+                    },
+                    None => counter = counter + 1,
+                }
+            }
+            if counter > 0 {
+                notation.push_str(&format!("{}", counter));
+                counter = 0;
+            }
+            notation.push('/');
+        }
+        notation.pop(); // remove last slash 
+
+        notation
+    }
+
+    fn castle_fen(&self) -> String {
+        let mut notation = String::new();
+        let no_castle = !(self.white_castle.short || self.white_castle.long || self.black_castle.short || self.black_castle.long);
+
+        if no_castle {
+            notation.push('-');
+            return notation;
+        }
+
+        if self.white_castle.short {
+            notation.push('K')
+        }
+        if self.white_castle.long {
+            notation.push('Q')
+        }
+        if self.black_castle.short {
+            notation.push('k')
+        }
+        if self.black_castle.short {
+            notation.push('q')
+        }
+
+        notation
+    }
+
+    pub fn to_fen(&self) -> String {
+        let mut notation = self.pieces_fen();
+        
+        notation.push(' ');
+        match self.active_piece {
+            Color::White => notation.push('w'),
+            Color::Black => notation.push('b'),
+        }
+        notation.push(' ');
+        notation.push_str(&self.castle_fen());
+        notation.push(' ');
+        notation.push_str("- 0 1");
+        
+        notation
     }
 
     fn get_piece(&self, pos: Position) -> Option<Piece> {
@@ -71,7 +148,7 @@ impl Board {
     fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
         self.data[pos.x + 8 * pos.y] = piece;
     }
-
+    
     pub fn move_piece(&self, origin: Position, target: Position) -> Self {
         let mut board = (*self).clone();
         let piece = board.get_piece(origin.clone());
@@ -87,8 +164,11 @@ impl fmt::Debug for Board {
 
         for i in (0..8).rev() {
             for j in 0..8 {
-                let piece = self.get_piece(Position{x:j, y:i});
-                let representation = Piece::repr(piece);
+                let square = self.get_piece(Position{x:j, y:i});
+                let representation = match square {
+                    Some(piece) => piece.utf8_repr(),
+                    None => ' ',
+                };
                 string.push(representation);
                 string.push(' ');
             }

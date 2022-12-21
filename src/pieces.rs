@@ -21,23 +21,59 @@ pub struct Position {
 }
 
 impl Piece {
-    pub fn repr(piece: Option<Self>) -> char {
-        match piece {
-            Some(Piece::Rook(Color::Black)) => '♖',
-            Some(Piece::Knight(Color::Black)) => '♘',
-            Some(Piece::Bishop(Color::Black)) => '♗',
-            Some(Piece::Queen(Color::Black)) => '♕',
-            Some(Piece::King(Color::Black)) => '♔',
-            Some(Piece::Pawn(Color::Black)) => '♙',
+    pub fn from_fen(notation: char) -> Option<Self> {
+        match notation {
+            'r' => Some(Piece::Rook(Color::Black)),
+            'n' => Some(Piece::Knight(Color::Black)),
+            'b' => Some(Piece::Bishop(Color::Black)),
+            'q' => Some(Piece::Queen(Color::Black)),
+            'k' => Some(Piece::King(Color::Black)),
+            'p' => Some(Piece::Pawn(Color::Black)),
 
-            Some(Piece::Rook(Color::White)) => '♜',
-            Some(Piece::Knight(Color::White)) => '♞',
-            Some(Piece::Bishop(Color::White)) => '♝',
-            Some(Piece::Queen(Color::White)) => '♛',
-            Some(Piece::King(Color::White)) => '♚',
-            Some(Piece::Pawn(Color::White)) => '♟',
+            'R' => Some(Piece::Rook(Color::White)),
+            'N' => Some(Piece::Knight(Color::White)),
+            'B' => Some(Piece::Bishop(Color::White)),
+            'Q' => Some(Piece::Queen(Color::White)),
+            'K' => Some(Piece::King(Color::White)),
+            'P' => Some(Piece::Pawn(Color::White)),
 
-            None => ' ',
+            _ => None
+        }
+    }
+
+    pub fn utf8_repr(&self) -> char {
+        match self {
+            Piece::Rook(Color::Black) => '♖',
+            Piece::Knight(Color::Black) => '♘',
+            Piece::Bishop(Color::Black) => '♗',
+            Piece::Queen(Color::Black) => '♕',
+            Piece::King(Color::Black) => '♔',
+            Piece::Pawn(Color::Black) => '♙',
+
+            Piece::Rook(Color::White) => '♜',
+            Piece::Knight(Color::White) => '♞',
+            Piece::Bishop(Color::White) => '♝',
+            Piece::Queen(Color::White) => '♛',
+            Piece::King(Color::White) => '♚',
+            Piece::Pawn(Color::White) => '♟',
+        }
+    }
+
+    pub fn fen_repr(&self) -> char {
+        match self {
+            Piece::Rook(Color::Black) => 'r',
+            Piece::Knight(Color::Black) => 'n',
+            Piece::Bishop(Color::Black) => 'b',
+            Piece::Queen(Color::Black) => 'q',
+            Piece::King(Color::Black) => 'k',
+            Piece::Pawn(Color::Black) => 'p',
+
+            Piece::Rook(Color::White) => 'R',
+            Piece::Knight(Color::White) => 'N',
+            Piece::Bishop(Color::White) => 'B',
+            Piece::Queen(Color::White) => 'Q',
+            Piece::King(Color::White) => 'K',
+            Piece::Pawn(Color::White) => 'P',
         }
     }
 }
