@@ -1,67 +1,94 @@
-struct Movement {
+use crate::board::Board;
+use crate::pieces::Piece;
+use crate::pieces::PieceKind;
+use crate::pieces::Color;
+use crate::pieces::Position;
+
+#[derive(Copy, Clone, Debug)]
+pub struct Movement {
     origin: Position,
     target: Position,
 }
 
-fn pieceMoves(board: &Board, position: Position) {
+pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    let piece = match board.get_piece(origin) {
+        Some(p) => p,
+        None => return Vec::<Movement>::new(), // goes out if None
+    };
 
+    match piece.kind {
+        PieceKind::Rook => rook_moves(board, origin),
+        _ => Vec::<Movement>::new(),
+    }
 }
 
-fn rookMoves(board: &Board, origin: Position) {
-    let mut moves = [];
-    let piece = board.get_piece(origin);
+fn rook_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    let mut movements = Vec::<Movement>::new();
 
-    for i in (origin.x+1)..8 {
-        let target = Position{x:i, y:origin.y}
-        match board.get_piece(target) {
-            Some(Piece(color)) => {
-                if color == piece.0 {
-                    moves.push(Movement{origin, target})
-                }
-                break;
-            },
-            None => moves.push(Movement{origin, target}),
+    let piece = match board.get_piece(origin) {
+        Some(p) => p,
+        None => return Vec::<Movement>::new(), // goes out if None
+    };
+
+    let start = origin.0 + 1;
+    let end = 8;
+    for i in start..end {
+        let target = Position(i, origin.1);
+
+        if let Some(target_piece) = board.get_piece(target) {
+            if piece.color != target_piece.color {
+                movements.push(Movement{origin, target});
+            }
+            break;
+        } else {
+            movements.push(Movement{origin, target});
         }
     }
 
-    for i in 0..(origin.x) {
-        let target = Position{x:i, y:origin.y};
-        match board.get_piece(target) {
-            Some(Piece(color)) => {
-                if color == piece.0 {
-                    moves.push(Movement{origin, target})
-                }
-                break;
-            },
-            None => moves.push(Movement{origin, target}),
+    let start = 0;
+    let end = origin.0;
+    for i in (start..end).rev() {
+        let target = Position(i, origin.1);
+
+        if let Some(target_piece) = board.get_piece(target) {
+            if piece.color != target_piece.color {
+                movements.push(Movement{origin, target});
+            }
+            break;
+        } else {
+            movements.push(Movement{origin, target});
         }
     }
 
-    for i in 0..8 {
-        let target = Position{x:i, y:origin.y};
-        let piece = board.get_piece(target);
+    let start = origin.1 + 1;
+    let end = 8;
+    for i in start..end {
+        let target = Position(origin.0, i);
 
-        match board.get_piece(target) {
-            Some(Piece(color)) => {
-                if color == piece.0 {
-                    moves.push(Movement{origin, target})
-                }
-                break;
-            },
-            None => moves.push(Movement{origin, target}),
+        if let Some(target_piece) = board.get_piece(target) {
+            if piece.color != target_piece.color {
+                movements.push(Movement{origin, target});
+            }
+            break;
+        } else {
+            movements.push(Movement{origin, target});
         }
     }
 
-    for i in 0..8 {
-        let target = Position{x:i, y:origin.y}
-        match board.get_piece(target) {
-            Some(Piece(color)) => {
-                if color == piece.0 {
-                    moves.push(Movement{origin, target})
-                }
-                break;
-            },
-            None => moves.push(Movement{origin, target}),
+    let start = 0;
+    let end = origin.1;
+    for i in (start..end).rev() {
+        let target = Position(origin.0, i);
+
+        if let Some(target_piece) = board.get_piece(target) {
+            if piece.color != target_piece.color {
+                movements.push(Movement{origin, target});
+            }
+            break;
+        } else {
+            movements.push(Movement{origin, target});
         }
     }
+
+    movements
 }

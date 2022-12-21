@@ -1,79 +1,82 @@
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Color {
     White,
     Black,
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum Piece {
-    Pawn(Color),
-    Rook(Color),
-    Knight(Color),
-    Bishop(Color),
-    Queen(Color),
-    King(Color),
+pub struct Piece {
+    pub color: Color,
+    pub kind: PieceKind,
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Position {
-    pub x: usize,
-    pub y: usize,
+pub enum PieceKind {
+    Pawn,
+    Rook,
+    Knight,
+    Bishop,
+    Queen,
+    King,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct Position(pub usize, pub usize);
+
 impl Piece {
-    pub fn from_fen(notation: char) -> Option<Self> {
+    pub fn from_fen(notation: char) -> Self {
         match notation {
-            'r' => Some(Piece::Rook(Color::Black)),
-            'n' => Some(Piece::Knight(Color::Black)),
-            'b' => Some(Piece::Bishop(Color::Black)),
-            'q' => Some(Piece::Queen(Color::Black)),
-            'k' => Some(Piece::King(Color::Black)),
-            'p' => Some(Piece::Pawn(Color::Black)),
+            'r' => Piece{color:Color::Black, kind:PieceKind::Rook},
+            'n' => Piece{color:Color::Black, kind:PieceKind::Knight},
+            'b' => Piece{color:Color::Black, kind:PieceKind::Bishop},
+            'q' => Piece{color:Color::Black, kind:PieceKind::Queen},
+            'k' => Piece{color:Color::Black, kind:PieceKind::King},
+            'p' => Piece{color:Color::Black, kind:PieceKind::Pawn},
 
-            'R' => Some(Piece::Rook(Color::White)),
-            'N' => Some(Piece::Knight(Color::White)),
-            'B' => Some(Piece::Bishop(Color::White)),
-            'Q' => Some(Piece::Queen(Color::White)),
-            'K' => Some(Piece::King(Color::White)),
-            'P' => Some(Piece::Pawn(Color::White)),
+            'R' => Piece{color:Color::White, kind:PieceKind::Rook},
+            'N' => Piece{color:Color::White, kind:PieceKind::Knight},
+            'B' => Piece{color:Color::White, kind:PieceKind::Bishop},
+            'Q' => Piece{color:Color::White, kind:PieceKind::Queen},
+            'K' => Piece{color:Color::White, kind:PieceKind::King},
+            'P' => Piece{color:Color::White, kind:PieceKind::Pawn},
 
-            _ => None
+            _ => panic!("Unkown fen piece"),
         }
     }
 
     pub fn utf8_repr(&self) -> char {
-        match self {
-            Piece::Rook(Color::Black) => '♖',
-            Piece::Knight(Color::Black) => '♘',
-            Piece::Bishop(Color::Black) => '♗',
-            Piece::Queen(Color::Black) => '♕',
-            Piece::King(Color::Black) => '♔',
-            Piece::Pawn(Color::Black) => '♙',
+        match (self.color, self.kind) {
+            (Color::Black, PieceKind::Rook) => '♖',
+            (Color::Black, PieceKind::Knight) => '♘',
+            (Color::Black, PieceKind::Bishop) => '♗',
+            (Color::Black, PieceKind::Queen) => '♕',
+            (Color::Black, PieceKind::King) => '♔',
+            (Color::Black, PieceKind::Pawn) => '♙',
 
-            Piece::Rook(Color::White) => '♜',
-            Piece::Knight(Color::White) => '♞',
-            Piece::Bishop(Color::White) => '♝',
-            Piece::Queen(Color::White) => '♛',
-            Piece::King(Color::White) => '♚',
-            Piece::Pawn(Color::White) => '♟',
+            (Color::White, PieceKind::Rook) => '♜',
+            (Color::White, PieceKind::Knight) => '♞',
+            (Color::White, PieceKind::Bishop) => '♝',
+            (Color::White, PieceKind::Queen) => '♛',
+            (Color::White, PieceKind::King) => '♚',
+            (Color::White, PieceKind::Pawn) => '♟',
         }
     }
 
     pub fn fen_repr(&self) -> char {
-        match self {
-            Piece::Rook(Color::Black) => 'r',
-            Piece::Knight(Color::Black) => 'n',
-            Piece::Bishop(Color::Black) => 'b',
-            Piece::Queen(Color::Black) => 'q',
-            Piece::King(Color::Black) => 'k',
-            Piece::Pawn(Color::Black) => 'p',
+        match (self.color, self.kind) {
+            (Color::Black, PieceKind::Rook) => 'r',
+            (Color::Black, PieceKind::Knight) => 'n',
+            (Color::Black, PieceKind::Bishop) => 'b',
+            (Color::Black, PieceKind::Queen) => 'q',
+            (Color::Black, PieceKind::King) => 'k',
+            (Color::Black, PieceKind::Pawn) => 'p',
 
-            Piece::Rook(Color::White) => 'R',
-            Piece::Knight(Color::White) => 'N',
-            Piece::Bishop(Color::White) => 'B',
-            Piece::Queen(Color::White) => 'Q',
-            Piece::King(Color::White) => 'K',
-            Piece::Pawn(Color::White) => 'P',
+            (Color::White, PieceKind::Rook) => 'R',
+            (Color::White, PieceKind::Knight) => 'N',
+            (Color::White, PieceKind::Bishop) => 'B',
+            (Color::White, PieceKind::Queen) => 'Q',
+            (Color::White, PieceKind::King) => 'K',
+            (Color::White, PieceKind::Pawn) => 'P',
         }
     }
 }

@@ -57,7 +57,7 @@ impl Board {
                 },
                 
                 _ => {
-                    board.set_piece(Position{x, y:(7-y)}, Piece::from_fen(c));
+                    board.set_piece(Position(x, (7-y)), Some(Piece::from_fen(c)));
                     x = x + 1;
                 }
             }
@@ -78,7 +78,7 @@ impl Board {
         for i in (0..8).rev() {
             counter = 0;
             for j in 0..8 {
-                match self.get_piece(Position{x:j, y:i}) {
+                match self.get_piece(Position(j, i)) {
                     Some(piece) => {
                         if counter > 0 {
                             notation.push_str(&format!("{}", counter));
@@ -141,12 +141,12 @@ impl Board {
         notation
     }
 
-    fn get_piece(&self, pos: Position) -> Option<Piece> {
-        self.data[pos.x + 8 * pos.y]
+    pub fn get_piece(&self, pos: Position) -> Option<Piece> {
+        self.data[pos.0 + 8 * pos.1]
     }
     
     fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
-        self.data[pos.x + 8 * pos.y] = piece;
+        self.data[pos.0 + 8 * pos.1] = piece;
     }
     
     pub fn move_piece(&self, origin: Position, target: Position) -> Self {
@@ -167,7 +167,7 @@ impl fmt::Debug for Board {
 
             for j in 0..8 {
 
-                let square = self.get_piece(Position{x:j, y:i});
+                let square = self.get_piece(Position(j, i));
                 let representation = match square {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',
