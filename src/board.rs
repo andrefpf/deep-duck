@@ -73,7 +73,7 @@ impl Board {
 
     fn pieces_fen(&self) -> String {
         let mut notation = String::new();
-        let mut counter = 0;
+        let mut counter;
 
         for i in (0..8).rev() {
             counter = 0;
