@@ -39,8 +39,8 @@ impl Board {
 
     pub fn from_fen(notation: &str) -> Self {
         let mut board = Board::new();
-        let mut x = 0;
-        let mut y = 0;
+        let mut x: i32 = 0;
+        let mut y: i32 = 0;
 
         for c in notation.chars() {
             match c {
@@ -52,12 +52,12 @@ impl Board {
                 },
 
                 '1'..='8' => {
-                    let int_c = c as usize - 0x30;
+                    let int_c: i32 = c as i32 - 0x30;
                     x = x + int_c;
                 },
                 
                 _ => {
-                    board.set_piece(Position(x, (7-y)), Some(Piece::from_fen(c)));
+                    board.set_piece(Position(x, 7-y), Some(Piece::from_fen(c)));
                     x = x + 1;
                 }
             }
@@ -69,6 +69,22 @@ impl Board {
     pub fn arranged() -> Self {
         let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         board
+    }
+    
+    pub fn to_fen(&self) -> String {
+        let mut notation = self.pieces_fen();
+        
+        notation.push(' ');
+        match self.active_piece {
+            Color::White => notation.push('w'),
+            Color::Black => notation.push('b'),
+        }
+        notation.push(' ');
+        notation.push_str(&self.castle_fen());
+        notation.push(' ');
+        notation.push_str("- 0 1");
+        
+        notation
     }
 
     fn pieces_fen(&self) -> String {
@@ -91,7 +107,6 @@ impl Board {
             }
             if counter > 0 {
                 notation.push_str(&format!("{}", counter));
-                counter = 0;
             }
             notation.push('/');
         }
@@ -124,29 +139,17 @@ impl Board {
 
         notation
     }
-
-    pub fn to_fen(&self) -> String {
-        let mut notation = self.pieces_fen();
-        
-        notation.push(' ');
-        match self.active_piece {
-            Color::White => notation.push('w'),
-            Color::Black => notation.push('b'),
-        }
-        notation.push(' ');
-        notation.push_str(&self.castle_fen());
-        notation.push(' ');
-        notation.push_str("- 0 1");
-        
-        notation
-    }
-
+    
     pub fn get_piece(&self, pos: Position) -> Option<Piece> {
-        self.data[pos.0 + 8 * pos.1]
+        let index = pos.0 + 8 * pos.1;
+        assert!(index >= 0);
+        self.data[index as usize]
     }
     
     fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
-        self.data[pos.0 + 8 * pos.1] = piece;
+        let index = pos.0 + 8 * pos.1;
+        assert!(index >= 0);
+        self.data[index as usize] = piece;
     }
     
     pub fn move_piece(&self, origin: Position, target: Position) -> Self {

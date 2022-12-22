@@ -21,7 +21,7 @@ pub enum PieceKind {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Position(pub usize, pub usize);
+pub struct Position(pub i32, pub i32);
 
 impl Piece {
     pub fn from_fen(notation: char) -> Self {
