@@ -96,18 +96,20 @@ impl Board {
 
         match piece {
             Some(Piece{color:Color::White, kind:PieceKind::Pawn}) => {
+                board.active_piece = Color::Black;
                 if origin.1 == 1 && target.1 == 3 {
                     board.set_en_passant(Some(target));
                 }
             },
-
+            
             Some(Piece{color:Color::Black, kind:PieceKind::Pawn}) => {
+                board.active_piece = Color::White;
                 if origin.1 == 6 && target.1 == 4 {
                     board.set_en_passant(Some(target));
                 } 
             },
 
-            _ => (),
+            _ => return board,
         }
 
         board.set_piece(origin, None);
