@@ -6,7 +6,7 @@ use crate::pieces::Color;
 use crate::pieces::Position;
 
 #[derive(Clone)]
-struct Castle {
+pub struct Castle {
     short: bool,
     long: bool,
 }
@@ -14,10 +14,10 @@ struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
-    en_passant: Option<Position>,
-    active_piece: Color,
-    white_castle: Castle,
-    black_castle: Castle,
+    pub en_passant: Option<Position>,
+    pub active_piece: Color,
+    pub white_castle: Castle,
+    pub black_castle: Castle,
 }
 
 impl Castle {

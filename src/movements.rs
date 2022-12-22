@@ -1,6 +1,8 @@
 use crate::board::Board;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
+use crate::pieces::Piece;
+use crate::pieces::Color;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Movement {
@@ -26,6 +28,7 @@ pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
         PieceKind::Bishop => bishop_moves(board, origin),
         PieceKind::Queen => queen_moves(board, origin),
         PieceKind::King => king_moves(board, origin),
+        PieceKind::Knight => knight_moves(board, origin),
         _ => Vec::<Movement>::new(),
     }
 }
@@ -169,6 +172,129 @@ fn king_moves(board: &Board, origin: Position) -> Vec::<Movement> {
             MoveKind::Capture => {movements.push(movement); break},
             MoveKind::Invalid => break,
         };
+    }
+
+    movements
+}
+
+fn knight_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    let mut movements = Vec::<Movement>::new();
+    let existing_moves = [
+        Position(origin.0 - 1, origin.1 - 2),
+        Position(origin.0 - 1, origin.1 + 2),
+
+        Position(origin.0 - 2, origin.1 - 1),
+        Position(origin.0 - 2, origin.1 + 1),
+
+        Position(origin.0 + 1, origin.1 - 1),
+        Position(origin.0 + 1, origin.1 + 1),
+
+        Position(origin.0 + 2, origin.1 - 2),
+        Position(origin.0 + 2, origin.1 + 2),
+    ];
+
+    for target in existing_moves {
+        let movement = Movement{origin, target};
+
+        match check_move(board, movement) {
+            MoveKind::Simple => movements.push(movement),
+            MoveKind::Capture => {movements.push(movement); break},
+            MoveKind::Invalid => break,
+        };
+    }
+
+    movements
+}
+
+fn pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    match board.get_piece(origin) {
+        Some(Piece{color:Color::White, kind:_}) => white_pawn_moves(board, origin),
+        Some(Piece{color:Color::Black, kind:_}) => black_pawn_moves(board, origin),
+        None => Vec::<Movement>::new(),
+    }
+}
+
+fn white_pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    let mut movements = Vec::<Movement>::new();
+
+    let move_ahead = Movement{origin, target:Position(origin.0, origin.1 + 1)};
+    let double_move = Movement{origin, target:Position(origin.0, origin.1 + 2)};
+    let take_left = Movement{origin, target:Position(origin.0 - 1, origin.1 + 1)};
+    let take_right = Movement{origin, target:Position(origin.0 + 1, origin.1 + 1)};
+
+    if let MoveKind::Simple = check_move(board, move_ahead) {
+        movements.push(move_ahead);
+
+        if origin.1 == 1 {
+            if let MoveKind::Simple = check_move(board, double_move) {
+                movements.push(double_move);
+            }
+        }
+    }
+
+    if let MoveKind::Capture = check_move(board, take_left) {
+        movements.push(take_left);
+    }
+
+    if let MoveKind::Capture = check_move(board, take_right) {
+        movements.push(take_right);
+    }
+
+    if let Some(position) = board.en_passant {
+        if let MoveKind::Simple = check_move(board, take_left) {
+            if position.0 == (origin.0 - 1) && position.1 == origin.1 {
+                movements.push(take_left);
+            }
+        }
+
+        if let MoveKind::Simple = check_move(board, take_right) {
+            if position.0 == (origin.0 + 1) && position.1 == origin.1 {
+                movements.push(take_right);
+            }
+        }
+    }
+
+    movements
+}
+
+fn black_pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    let mut movements = Vec::<Movement>::new();
+
+    let move_ahead = Movement{origin, target:Position(origin.0, origin.1 - 1)};
+    let double_move = Movement{origin, target:Position(origin.0, origin.1 - 2)};
+    let take_left = Movement{origin, target:Position(origin.0 - 1, origin.1 - 1)};
+    let take_right = Movement{origin, target:Position(origin.0 + 1, origin.1 - 1)};
+
+    if let MoveKind::Simple = check_move(board, move_ahead) {
+        movements.push(move_ahead);
+
+        if origin.1 == 6 {
+            if let MoveKind::Simple = check_move(board, double_move) {
+                movements.push(double_move);
+            }
+        }
+    }
+
+    if let MoveKind::Capture = check_move(board, take_left) {
+        movements.push(take_left);
+    }
+
+    if let MoveKind::Capture = check_move(board, take_right) {
+        movements.push(take_right);
+    }
+
+    if let Some(position) = board.en_passant {
+        if let MoveKind::Simple = check_move(board, take_left) {
+            if position.0 == (origin.0 - 1) && position.1 == origin.1 {
+                movements.push(take_left);
+            }
+        }
+
+        if let MoveKind::Simple = check_move(board, take_right) {
+            if position.0 == (origin.0 + 1) && position.1 == origin.1 {
+                movements.push(take_right);
+            }
+        }
     }
 
     movements
