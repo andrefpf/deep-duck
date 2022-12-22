@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::pieces::Piece;
+use crate::pieces::PieceKind;
 use crate::pieces::Color;
 use crate::pieces::Position;
 
@@ -13,6 +14,7 @@ struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
+    en_passant: Option<Position>,
     active_piece: Color,
     white_castle: Castle,
     black_castle: Castle,
@@ -31,6 +33,7 @@ impl Board {
     pub fn new() -> Self {
         Board {
             data: [None; 64],
+            en_passant: None,
             active_piece: Color::White,
             white_castle: Castle::new(),
             black_castle: Castle::new(),
@@ -70,6 +73,47 @@ impl Board {
         let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         board
     }
+
+    pub fn get_piece(&self, pos: Position) -> Option<Piece> {
+        let index = pos.0 + 8 * pos.1;
+        assert!(index >= 0);
+        self.data[index as usize]
+    }
+    
+    fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
+        let index = pos.0 + 8 * pos.1;
+        assert!(index >= 0);
+        self.data[index as usize] = piece;
+    }
+
+    fn set_en_passant(&mut self, pos: Option<Position>) {
+        self.en_passant = pos;
+    }
+    
+    pub fn move_piece(&self, origin: Position, target: Position) -> Self {
+        let mut board = (*self).clone();
+        let piece = board.get_piece(origin.clone());
+
+        match piece {
+            Some(Piece{color:Color::White, kind:PieceKind::Pawn}) => {
+                if origin.1 == 1 && target.1 == 3 {
+                    board.set_en_passant(Some(target));
+                }
+            },
+
+            Some(Piece{color:Color::Black, kind:PieceKind::Pawn}) => {
+                if origin.1 == 6 && target.1 == 4 {
+                    board.set_en_passant(Some(target));
+                } 
+            },
+
+            _ => (),
+        }
+
+        board.set_piece(origin, None);
+        board.set_piece(target, piece);
+        board
+    }
     
     pub fn to_fen(&self) -> String {
         let mut notation = self.pieces_fen();
@@ -82,7 +126,8 @@ impl Board {
         notation.push(' ');
         notation.push_str(&self.castle_fen());
         notation.push(' ');
-        notation.push_str("- 0 1");
+        notation.push_str(&self.en_passant_fen());
+        notation.push_str(" 0 1");
         
         notation
     }
@@ -139,26 +184,22 @@ impl Board {
 
         notation
     }
-    
-    pub fn get_piece(&self, pos: Position) -> Option<Piece> {
-        let index = pos.0 + 8 * pos.1;
-        assert!(index >= 0);
-        self.data[index as usize]
-    }
-    
-    fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
-        let index = pos.0 + 8 * pos.1;
-        assert!(index >= 0);
-        self.data[index as usize] = piece;
-    }
-    
-    pub fn move_piece(&self, origin: Position, target: Position) -> Self {
-        let mut board = (*self).clone();
-        let piece = board.get_piece(origin.clone());
-        board.set_piece(origin, None);
-        board.set_piece(target, piece);
-        board
-    }
+
+    fn en_passant_fen(&self) -> String {
+        let indexes = "abcdefgh";
+
+        match self.en_passant {
+            Some(pos) => {
+                if let Some(char_index) = indexes.chars().nth(pos.0 as usize) {
+                    String::from(format!("{}{}", char_index, pos.1 + 1))
+                } else {
+                    String::from("-")
+                }
+            },
+
+            None => String::from("-"),
+        }
+    }    
 }
 
 impl fmt::Debug for Board {
