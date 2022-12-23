@@ -15,6 +15,7 @@ pub struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
+    pub move_counter: usize,
     pub last_move: Option<Movement>,
     pub en_passant: bool,
     pub active_piece: Color,
@@ -35,6 +36,7 @@ impl Board {
     pub fn new() -> Self {
         Board {
             data: [None; 64],
+            move_counter: 0,
             last_move: None,
             en_passant: false,
             active_piece: Color::White,
@@ -113,6 +115,7 @@ impl Board {
             _ => return board,
         }
 
+        board.move_counter = self.move_counter + 1;
         board.set_piece(origin, None);
         board.set_piece(target, piece);
         board
@@ -130,7 +133,7 @@ impl Board {
         notation.push_str(&self.castle_fen());
         notation.push(' ');
         notation.push_str(&self.en_passant_fen());
-        notation.push_str(" 0 1");
+        notation.push_str(&format!(" {} 1", self.move_counter));
         
         notation
     }
