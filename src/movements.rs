@@ -6,8 +6,8 @@ use crate::pieces::Color;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Movement {
-    origin: Position,
-    target: Position,
+    pub origin: Position,
+    pub target: Position,
 }
 
 #[derive(Debug)]
@@ -242,20 +242,22 @@ impl Movement {
             movements.push(take_right);
         }
         
-        if let Some(position) = board.en_passant {
-            if let MoveKind::Simple = Self::check_move(board, take_left) {
-                if position.0 == (origin.0 - 1) && position.1 == origin.1 {
-                    movements.push(take_left);
+        if board.en_passant {
+            if let Some(movement) = board.last_move {
+                if let MoveKind::Simple = Self::check_move(board, take_left) {
+                    if movement.target.0 == (origin.0 - 1) && movement.target.1 == origin.1 {
+                        movements.push(take_left);
+                    }
                 }
-            }
-            
-            if let MoveKind::Simple = Self::check_move(board, take_right) {
-                if position.0 == (origin.0 + 1) && position.1 == origin.1 {
-                    movements.push(take_right);
+                
+                if let MoveKind::Simple = Self::check_move(board, take_right) {
+                    if movement.target.0 == (origin.0 + 1) && movement.target.1 == origin.1 {
+                        movements.push(take_right);
+                    }
                 }
             }
         }
-        
+
         movements
     }
 
@@ -285,16 +287,18 @@ impl Movement {
             movements.push(take_right);
         }
         
-        if let Some(position) = board.en_passant {
-            if let MoveKind::Simple = Self::check_move(board, take_left) {
-                if position.0 == (origin.0 - 1) && position.1 == origin.1 {
-                    movements.push(take_left);
+        if board.en_passant {
+            if let Some(movement) = board.last_move {
+                if let MoveKind::Simple = Self::check_move(board, take_left) {
+                    if movement.target.0 == (origin.0 - 1) && movement.target.1 == origin.1 {
+                        movements.push(take_left);
+                    }
                 }
-            }
-            
-            if let MoveKind::Simple = Self::check_move(board, take_right) {
-                if position.0 == (origin.0 + 1) && position.1 == origin.1 {
-                    movements.push(take_right);
+                
+                if let MoveKind::Simple = Self::check_move(board, take_right) {
+                    if movement.target.0 == (origin.0 + 1) && movement.target.1 == origin.1 {
+                        movements.push(take_right);
+                    }
                 }
             }
         }

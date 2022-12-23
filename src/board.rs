@@ -1,9 +1,10 @@
 use std::fmt;
 
-use crate::pieces::Piece;
 use crate::pieces::PieceKind;
-use crate::pieces::Color;
 use crate::pieces::Position;
+use crate::pieces::Piece;
+use crate::pieces::Color;
+use crate::movements::Movement;
 
 #[derive(Clone)]
 pub struct Castle {
@@ -14,7 +15,8 @@ pub struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
-    pub en_passant: Option<Position>,
+    pub last_move: Option<Movement>,
+    pub en_passant: bool,
     pub active_piece: Color,
     pub white_castle: Castle,
     pub black_castle: Castle,
@@ -33,7 +35,8 @@ impl Board {
     pub fn new() -> Self {
         Board {
             data: [None; 64],
-            en_passant: None,
+            last_move: None,
+            en_passant: false,
             active_piece: Color::White,
             white_castle: Castle::new(),
             black_castle: Castle::new(),
@@ -85,10 +88,6 @@ impl Board {
         assert!(index >= 0);
         self.data[index as usize] = piece;
     }
-
-    fn set_en_passant(&mut self, pos: Option<Position>) {
-        self.en_passant = pos;
-    }
     
     pub fn move_piece(&self, origin: Position, target: Position) -> Self {
         let mut board = (*self).clone();
@@ -96,16 +95,18 @@ impl Board {
 
         match piece {
             Some(Piece{color:Color::White, kind:PieceKind::Pawn}) => {
+                board.last_move = Some(Movement{origin, target});
                 board.active_piece = Color::Black;
                 if origin.1 == 1 && target.1 == 3 {
-                    board.set_en_passant(Some(target));
+                    board.en_passant = true;
                 }
             },
             
             Some(Piece{color:Color::Black, kind:PieceKind::Pawn}) => {
+                board.last_move = Some(Movement{origin, target});
                 board.active_piece = Color::White;
                 if origin.1 == 6 && target.1 == 4 {
-                    board.set_en_passant(Some(target));
+                    board.en_passant = true;
                 } 
             },
 
@@ -188,19 +189,18 @@ impl Board {
     }
 
     fn en_passant_fen(&self) -> String {
-        let indexes = "abcdefgh";
-
-        match self.en_passant {
-            Some(pos) => {
-                if let Some(char_index) = indexes.chars().nth(pos.0 as usize) {
-                    String::from(format!("{}{}", char_index, pos.1 + 1))
-                } else {
-                    String::from("-")
-                }
-            },
-
-            None => String::from("-"),
+        if !self.en_passant {
+            return String::from("-");
         }
+
+        if let Some(movement) = self.last_move {
+            let indexes = "abcdefgh";
+            if let Some(char_index) = indexes.chars().nth(movement.target.0 as usize) {
+                return String::from(format!("{}{}", char_index, movement.target.1 + 1));
+            }
+        }
+
+        String::from("-")
     }    
 }
 
@@ -212,12 +212,12 @@ impl fmt::Debug for Board {
             string.push_str(&format!("{} ", i + 1));
 
             for j in 0..8 {
-
                 let square = self.get_piece(Position(j, i));
                 let representation = match square {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',
                 };
+
                 string.push(representation);
                 string.push(' ');
             }
