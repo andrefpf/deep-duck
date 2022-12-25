@@ -18,6 +18,30 @@ enum MoveKind {
 }
 
 impl Movement {
+    pub fn avaliable_moves(board: &Board, color: Color) -> Vec::<Movement>{
+        let mut movements = Vec::<Movement>::new();
+
+        for i in 0..8 {
+            for j in 0..8 {
+                let position = Position(i, j);
+                let piece = board.get_piece(position);
+
+                if let None = piece {
+                    continue;
+                }
+
+                let piece = piece.unwrap();
+                
+                if piece.color == color {
+                    let mut piece_movements = Self::piece_moves(board, position);
+                    movements.append(&mut piece_movements);
+                }
+            }
+        }
+
+        movements
+    }
+
     pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
         let piece = match board.get_piece(origin) {
             Some(p) => p,
@@ -31,7 +55,6 @@ impl Movement {
             PieceKind::King => Self::king_moves(board, origin),
             PieceKind::Knight => Self::knight_moves(board, origin),
             PieceKind::Pawn => Self::pawn_moves(board, origin),
-            // _ => Vec::<Movement>::new(),
         }
     }
 
@@ -171,8 +194,8 @@ impl Movement {
             
             match Self::check_move(board, movement) {
                 MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
+                MoveKind::Capture => movements.push(movement),
+                MoveKind::Invalid => (),
             };
         }
         
@@ -200,8 +223,8 @@ impl Movement {
             
             match Self::check_move(board, movement) {
                 MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
+                MoveKind::Capture => movements.push(movement),
+                MoveKind::Invalid => (),
             };
         }
         
@@ -327,7 +350,7 @@ impl Movement {
 
         let origin_piece = match board.get_piece(movement.origin) {
             Some(p) => p,
-            None => return MoveKind::Invalid, // goes out if None
+            None => return MoveKind::Invalid,
         };
         
         if let Some(target_piece) = board.get_piece(movement.target) {

@@ -18,7 +18,7 @@ pub struct Board {
     pub move_counter: usize,
     pub last_move: Option<Movement>,
     pub en_passant: bool,
-    pub active_piece: Color,
+    pub active_color: Color,
     pub white_castle: Castle,
     pub black_castle: Castle,
 }
@@ -39,7 +39,7 @@ impl Board {
             move_counter: 0,
             last_move: None,
             en_passant: false,
-            active_piece: Color::White,
+            active_color: Color::White,
             white_castle: Castle::new(),
             black_castle: Castle::new(),
         }
@@ -98,7 +98,7 @@ impl Board {
         match piece {
             Some(Piece{color:Color::White, kind:PieceKind::Pawn}) => {
                 board.last_move = Some(Movement{origin, target});
-                board.active_piece = Color::Black;
+                board.active_color = Color::Black;
                 if origin.1 == 1 && target.1 == 3 {
                     board.en_passant = true;
                 }
@@ -106,7 +106,7 @@ impl Board {
             
             Some(Piece{color:Color::Black, kind:PieceKind::Pawn}) => {
                 board.last_move = Some(Movement{origin, target});
-                board.active_piece = Color::White;
+                board.active_color = Color::White;
                 if origin.1 == 6 && target.1 == 4 {
                     board.en_passant = true;
                 } 
@@ -125,7 +125,7 @@ impl Board {
         let mut notation = self.pieces_fen();
         
         notation.push(' ');
-        match self.active_piece {
+        match self.active_color {
             Color::White => notation.push('w'),
             Color::Black => notation.push('b'),
         }
