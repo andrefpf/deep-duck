@@ -20,6 +20,7 @@ enum MoveKind {
 impl Movement {
     pub fn avaliable_moves(board: &Board, color: Color) -> Vec::<Movement>{
         let mut movements = Vec::<Movement>::new();
+        let mut king_found = false;
 
         for i in 0..8 {
             for j in 0..8 {
@@ -31,13 +32,22 @@ impl Movement {
                 }
 
                 let piece = piece.unwrap();
+
                 
                 if piece.color == color {
                     let mut piece_movements = Self::piece_moves(board, position);
                     movements.append(&mut piece_movements);
+                    
+                    if let PieceKind::King = piece.kind {
+                        king_found = true;
+                    }
                 }
             }
         }
+
+        // if !king_found {
+        //     movements.clear();
+        // }
 
         movements
     }
@@ -211,11 +221,11 @@ impl Movement {
             Position(origin.0 - 2, origin.1 - 1),
             Position(origin.0 - 2, origin.1 + 1),
             
-            Position(origin.0 + 1, origin.1 - 1),
-            Position(origin.0 + 1, origin.1 + 1),
+            Position(origin.0 + 1, origin.1 - 2),
+            Position(origin.0 + 1, origin.1 + 2),
             
-            Position(origin.0 + 2, origin.1 - 2),
-            Position(origin.0 + 2, origin.1 + 2),
+            Position(origin.0 + 2, origin.1 - 1),
+            Position(origin.0 + 2, origin.1 + 1),
             ];
             
         for target in existing_moves {

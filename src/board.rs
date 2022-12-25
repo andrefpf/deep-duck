@@ -91,33 +91,16 @@ impl Board {
         self.data[index as usize] = piece;
     }
     
-    pub fn move_piece(&self, origin: Position, target: Position) -> Self {
-        let mut board = (*self).clone();
-        let piece = board.get_piece(origin.clone());
+    pub fn make_move(&mut self, origin: Position, target: Position) {
+        let piece = self.get_piece(origin.clone());
+        self.move_counter = self.move_counter + 1;
+        self.set_piece(origin, None);
+        self.set_piece(target, piece);
+    }
 
-        match piece {
-            Some(Piece{color:Color::White, kind:PieceKind::Pawn}) => {
-                board.last_move = Some(Movement{origin, target});
-                board.active_color = Color::Black;
-                if origin.1 == 1 && target.1 == 3 {
-                    board.en_passant = true;
-                }
-            },
-            
-            Some(Piece{color:Color::Black, kind:PieceKind::Pawn}) => {
-                board.last_move = Some(Movement{origin, target});
-                board.active_color = Color::White;
-                if origin.1 == 6 && target.1 == 4 {
-                    board.en_passant = true;
-                } 
-            },
-
-            _ => return board,
-        }
-
-        board.move_counter = self.move_counter + 1;
-        board.set_piece(origin, None);
-        board.set_piece(target, piece);
+    pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
+        let mut board = self.clone();
+        board.make_move(origin, target);
         board
     }
     

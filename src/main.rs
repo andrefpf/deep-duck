@@ -1,19 +1,48 @@
 mod board;
 mod pieces;
 mod movements;
+mod engine;
 
 use crate::board::Board;
 use crate::pieces::Position;
+use crate::pieces::Color;
 use crate::movements::Movement;
+use crate::engine::search;
+use crate::engine::evaluate;
 
 fn main() {
-    // let board = Board::from_fen("r2q1r2/pbpp2k1/1pn2ppp/3N4/5Q2/1Q1P1NP1/1PP2PBP/5RK1 w - - 0 20");
-    let board = Board::arranged();
-    let board = board.move_piece(Position(3, 1), Position(3, 3));
-    let valid_movements = Movement::piece_moves(&board, Position(0, 1));
+    let mut board = Board::from_fen("5r1k/p5p1/1qb1p3/1p6/1PnPB3/1R6/2Q1KBPP/8 b - - 4 29");
+    println!("{:?} \n", board);
+
+    let mut color = Color::Black;
+
     
-    println!("{:?}", board);
-    println!("");
-    println!("Movimentos válidos: {}", valid_movements.len());
-    println!("FEN diagram: {}", board.to_fen());
+    use std::time::Instant;
+    let now = Instant::now();
+
+    let best_move = search(&board, color);
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if let Some(best_move) = best_move {
+        board.make_move(best_move.origin, best_move.target);
+        println!("{:?}", best_move);
+        println!("{:?}", board);
+    }
+
+    println!("{}", board.to_fen());
 }
