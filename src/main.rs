@@ -8,20 +8,28 @@ use crate::pieces::Position;
 use crate::pieces::Color;
 use crate::movements::Movement;
 use crate::engine::search;
-use crate::engine::evaluate;
+use std::time::{Duration, Instant};
 
-fn main() {
-    let mut board = Board::from_fen("4k3/8/5r2/2KN4/8/8/8/8 w - - 0 1");
+fn example() {
+    let mut board = Board::from_fen("r3k2r/p1ppqpb1/Bn2pnp1/3PN3/1p2P3/2N4p/PPPB1PPP/R3K2R w - - 0 1");
     println!("{:?} \n", board);
     
-    let mut color = Color::White;
-    let best_move = search(&board, color, 2);
-
+    let mut color = Color::Black;
+    let best_move = search(&board, color, 3);
+    
     if let Some(best_move) = best_move {
         board.make_move(best_move.origin, best_move.target);
-        println!("{:?}", best_move);
+        // println!("{:?}", best_move);
         println!("{:?}", board);
     }
+    
+    // println!("{}", board.to_fen());
+}
 
-    println!("{}", board.to_fen());
+fn main() {
+    let start = Instant::now();
+    example();
+    let duration = start.elapsed();
+
+    println!("Time elapsed is: {:?}", duration);
 }

@@ -8,7 +8,7 @@ use crate::movements::Movement;
 
 pub fn search(board: &Board, color: Color, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
-    let mut best_score: i32 = i32::MIN;
+    let mut best_score = i32::MIN;
 
     let mut tmp_score: i32;
     let mut tmp_board: Board;
@@ -22,7 +22,7 @@ pub fn search(board: &Board, color: Color, depth: usize) -> Option<Movement> {
 
     for movement in avaliable_moves {
         tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth);
+        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth, -i32::MAX, i32::MAX);
         if best_score < tmp_score {
             best_score = tmp_score;
             best_movement = Some(movement);
@@ -36,27 +36,36 @@ pub fn evaluate(board: &Board, color: Color) -> i32 {
     count_material(board, color)
 }
 
-fn evaluate_recursive(board: &Board, color: Color, depth: usize) -> i32 {
+fn evaluate_recursive(board: &Board, color: Color, depth: usize, alpha: i32, beta: i32) -> i32 {
     if depth == 0 {
         return evaluate(board, color);
     }
     
-    let mut tmp_board: Board;
+    let mut alpha = alpha;
     let mut tmp_score: i32;
-    let mut best_score = -i32::MAX;
 
     let next_color = match color {
         Color::White => Color::Black,
         Color::Black => Color::White,
     };
 
-    for movement in Movement::avaliable_moves(board, color) {
-        tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth - 1);
-        best_score = cmp::max(best_score, tmp_score);
+    let mut possible_boards = Movement::avaliable_moves(board, color)
+                          .iter()
+                          .map(|mv| board.copy_and_move(mv.origin, mv.target))
+                          .collect::<Vec<Board>>();
+    
+    possible_boards.sort_by(|a, b| evaluate(b, color).cmp(&evaluate(a, color)));
+
+    for tmp_board in possible_boards {
+        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth - 1, -beta, -alpha);
+        
+        if tmp_score >= beta {
+            return beta;
+        }
+        alpha = cmp::max(alpha, tmp_score);
     }
 
-    best_score
+    alpha
 }
 
 fn count_material(board: &Board, color: Color) -> i32 {
