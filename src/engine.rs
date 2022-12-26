@@ -62,22 +62,13 @@ fn evaluate_recursive(board: &Board, color: Color, depth: usize) -> i32 {
 fn count_material(board: &Board, color: Color) -> i32 {
     let mut score: i32 = 0;
     
-    for i in 0..8 {
-        for j in 0..8 {
-            let position = Position(i, j);
-            let piece = board.get_square(position);
+    for square in board.ocuppied_squares() {
+        let piece = square.piece.unwrap();
             
-            if let None = piece {
-                continue;
-            }
-            
-            let piece = piece.unwrap();
-            
-            if piece.color == color {
-                score = score + piece_value(piece);
-            } else {
-                score = score - piece_value(piece);
-            }     
+        if piece.color == color {
+            score = score + piece_value(piece);
+        } else {
+            score = score - piece_value(piece);
         }
     }
 

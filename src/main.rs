@@ -11,9 +11,9 @@ use crate::engine::search;
 use crate::engine::evaluate;
 
 fn main() {
-    let mut board = Board::from_fen("4R3/8/5R2/2KN4/8/8/8/8 w - - 0 1");
+    let mut board = Board::from_fen("4k3/8/5r2/2KN4/8/8/8/8 w - - 0 1");
     println!("{:?} \n", board);
-
+    
     let mut color = Color::White;
     let best_move = search(&board, color, 2);
 

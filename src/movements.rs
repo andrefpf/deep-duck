@@ -22,25 +22,15 @@ impl Movement {
         let mut movements = Vec::<Movement>::new();
         let mut king_found = false;
 
-        for i in 0..8 {
-            for j in 0..8 {
-                let position = Position(i, j);
-                let piece = board.get_square(position);
-
-                if let None = piece {
-                    continue;
-                }
-
-                let piece = piece.unwrap();
-
+        for square in board.ocuppied_squares() {
+            let piece = square.piece.unwrap();
+            
+            if piece.color == color {
+                let mut piece_movements = Self::piece_moves(board, square.pos);
+                movements.append(&mut piece_movements);
                 
-                if piece.color == color {
-                    let mut piece_movements = Self::piece_moves(board, position);
-                    movements.append(&mut piece_movements);
-                    
-                    if let PieceKind::King = piece.kind {
-                        king_found = true;
-                    }
+                if let PieceKind::King = piece.kind {
+                    king_found = true;
                 }
             }
         }
@@ -53,7 +43,7 @@ impl Movement {
     }
 
     pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let piece = match board.get_square(origin) {
+        let piece = match board.get_square(origin).piece {
             Some(p) => p,
             None => return Vec::<Movement>::new(), // goes out if None
         };
@@ -242,7 +232,7 @@ impl Movement {
     }
 
     fn pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        match board.get_square(origin) {
+        match board.get_square(origin).piece {
             Some(Piece{color:Color::White, kind:_}) => Self::white_pawn_moves(board, origin),
             Some(Piece{color:Color::Black, kind:_}) => Self::black_pawn_moves(board, origin),
             None => Vec::<Movement>::new(),
@@ -358,12 +348,12 @@ impl Movement {
             return MoveKind::Invalid;
         }
 
-        let origin_piece = match board.get_square(movement.origin) {
+        let origin_piece = match board.get_square(movement.origin).piece {
             Some(p) => p,
             None => return MoveKind::Invalid,
         };
         
-        if let Some(target_square) = board.get_square(movement.target) {
+        if let Some(target_square) = board.get_square(movement.target).piece {
             if origin_piece.color == target_square.color {
                 return MoveKind::Invalid;
             } else {

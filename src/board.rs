@@ -6,6 +6,11 @@ use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
 
+pub struct Square {
+    pub pos: Position,
+    pub piece: Option<Piece>,
+}
+
 #[derive(Clone)]
 pub struct Castle {
     short: bool,
@@ -45,6 +50,21 @@ impl Board {
         }
     }
 
+    pub fn ocuppied_squares(&self) -> Vec::<Square> {
+        let mut squares = Vec::<Square>::new();
+
+        for i in 0..8 {
+            for j in 0..8 {
+                let square = self.get_square(Position(i, j));
+                if let Some(piece) = square.piece {
+                    squares.push(square);
+                }
+            }
+        }        
+        
+        squares
+    }
+
     pub fn from_fen(notation: &str) -> Self {
         let mut board = Board::new();
         let mut x: i32 = 0;
@@ -65,7 +85,8 @@ impl Board {
                 },
                 
                 _ => {
-                    board.set_square(Position(x, 7-y), Some(Piece::from_fen(c)));
+                    let square = Square{pos:Position(x, 7-y), piece:Some(Piece::from_fen(c))};
+                    board.set_square(square);
                     x = x + 1;
                 }
             }
@@ -79,23 +100,26 @@ impl Board {
         board
     }
 
-    pub fn get_square(&self, pos: Position) -> Option<Piece> {
+    pub fn get_square(&self, pos: Position) -> Square {
         let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
-        self.data[index as usize]
+        Square {
+            pos,
+            piece:self.data[index as usize],
+        }
     }
     
-    fn set_square(&mut self, pos: Position, piece: Option<Piece>) {
-        let index = pos.0 + 8 * pos.1;
+    pub fn set_square(&mut self, square: Square) {
+        let index = square.pos.0 + 8 * square.pos.1;
         assert!(index >= 0);
-        self.data[index as usize] = piece;
+        self.data[index as usize] = square.piece;
     }
     
     pub fn make_move(&mut self, origin: Position, target: Position) {
-        let piece = self.get_square(origin.clone());
+        let origin_square = self.get_square(origin.clone());
         self.move_counter = self.move_counter + 1;
-        self.set_square(origin, None);
-        self.set_square(target, piece);
+        self.set_square(Square{pos:origin, piece:None});
+        self.set_square(Square{pos:target, piece:origin_square.piece});
     }
 
     pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
@@ -128,7 +152,8 @@ impl Board {
         for i in (0..8).rev() {
             counter = 0;
             for j in 0..8 {
-                match self.get_square(Position(j, i)) {
+                let square = self.get_square(Position(j, i));
+                match square.piece {
                     Some(piece) => {
                         if counter > 0 {
                             notation.push_str(&format!("{}", counter));
@@ -199,7 +224,7 @@ impl fmt::Debug for Board {
 
             for j in 0..8 {
                 let square = self.get_square(Position(j, i));
-                let representation = match square {
+                let representation = match square.piece {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',
                 };
