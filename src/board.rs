@@ -51,7 +51,7 @@ impl Board {
     }
 
     pub fn ocuppied_squares(&self) -> Vec::<Square> {
-        let mut squares = Vec::<Square>::new();
+        let mut squares = Vec::<Square>::with_capacity(32);
 
         for i in 0..8 {
             for j in 0..8 {

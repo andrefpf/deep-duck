@@ -19,7 +19,7 @@ enum MoveKind {
 
 impl Movement {
     pub fn avaliable_moves(board: &Board, color: Color) -> Vec::<Movement>{
-        let mut movements = Vec::<Movement>::new();
+        let mut movements = Vec::<Movement>::with_capacity(140);
         let mut king_found = false;
 
         for square in board.ocuppied_squares() {
