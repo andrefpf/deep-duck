@@ -6,13 +6,11 @@ use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
 
-pub fn search(board: &Board, color: Color) -> Option<Movement> {
-    let iterations = 3;
-
+pub fn search(board: &Board, color: Color, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
     let mut best_score: i32 = i32::MIN;
 
-    let mut tmp_score;
+    let mut tmp_score: i32;
     let mut tmp_board: Board;
 
     let next_color = match color {
@@ -24,7 +22,7 @@ pub fn search(board: &Board, color: Color) -> Option<Movement> {
 
     for movement in avaliable_moves {
         tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, next_color, iterations);
+        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth);
         if best_score < tmp_score {
             best_score = tmp_score;
             best_movement = Some(movement);
@@ -38,15 +36,15 @@ pub fn evaluate(board: &Board, color: Color) -> i32 {
     count_material(board, color)
 }
 
-fn evaluate_recursive(board: &Board, color: Color, iterations: usize) -> i32 {
-    if iterations == 0 {
+fn evaluate_recursive(board: &Board, color: Color, depth: usize) -> i32 {
+    if depth == 0 {
         return evaluate(board, color);
     }
     
     let mut tmp_board: Board;
-    let mut current_score;
-    let mut best_score = i32::MIN;
-    
+    let mut tmp_score: i32;
+    let mut best_score = -i32::MAX;
+
     let next_color = match color {
         Color::White => Color::Black,
         Color::Black => Color::White,
@@ -54,8 +52,8 @@ fn evaluate_recursive(board: &Board, color: Color, iterations: usize) -> i32 {
 
     for movement in Movement::avaliable_moves(board, color) {
         tmp_board = board.copy_and_move(movement.origin, movement.target);
-        current_score = -evaluate_recursive(&tmp_board, next_color, iterations-1);
-        best_score = cmp::max(best_score, current_score);
+        tmp_score = -evaluate_recursive(&tmp_board, next_color, depth - 1);
+        best_score = cmp::max(best_score, tmp_score);
     }
 
     best_score
@@ -67,7 +65,7 @@ fn count_material(board: &Board, color: Color) -> i32 {
     for i in 0..8 {
         for j in 0..8 {
             let position = Position(i, j);
-            let piece = board.get_piece(position);
+            let piece = board.get_square(position);
             
             if let None = piece {
                 continue;
@@ -94,5 +92,38 @@ fn piece_value(piece: Piece) -> i32 {
         PieceKind::Rook => 500,
         PieceKind::Queen => 900,
         PieceKind::King => 1_000_000,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_obvious() {
+        let mut board = Board::from_fen("4k3/8/5r2/2KN4/8/8/8/8 w - - 0 1");
+        let best_move = search(&board, Color::White, 2);
+        
+        if let None = best_move {
+            panic!("No moves found");
+        }
+        let best_move = best_move.unwrap();
+        
+        assert_eq!(best_move.origin, Position(3, 4));
+        assert_eq!(best_move.target, Position(5, 5));
+    }
+    
+    #[test]
+    fn test_forks() {
+        let mut board = Board::from_fen("r3k3/2b5/5r2/2KN4/8/8/8/8 w - - 0 1");
+        let best_move = search(&board, Color::White, 2);
+
+        if let None = best_move {
+            panic!("No moves found");
+        }
+        let best_move = best_move.unwrap();
+
+        assert_eq!(best_move.origin, Position(3, 4));
+        assert_eq!(best_move.target, Position(2, 6));
     }
 }

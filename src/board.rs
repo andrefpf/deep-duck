@@ -65,7 +65,7 @@ impl Board {
                 },
                 
                 _ => {
-                    board.set_piece(Position(x, 7-y), Some(Piece::from_fen(c)));
+                    board.set_square(Position(x, 7-y), Some(Piece::from_fen(c)));
                     x = x + 1;
                 }
             }
@@ -79,23 +79,23 @@ impl Board {
         board
     }
 
-    pub fn get_piece(&self, pos: Position) -> Option<Piece> {
+    pub fn get_square(&self, pos: Position) -> Option<Piece> {
         let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
         self.data[index as usize]
     }
     
-    fn set_piece(&mut self, pos: Position, piece: Option<Piece>) {
+    fn set_square(&mut self, pos: Position, piece: Option<Piece>) {
         let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
         self.data[index as usize] = piece;
     }
     
     pub fn make_move(&mut self, origin: Position, target: Position) {
-        let piece = self.get_piece(origin.clone());
+        let piece = self.get_square(origin.clone());
         self.move_counter = self.move_counter + 1;
-        self.set_piece(origin, None);
-        self.set_piece(target, piece);
+        self.set_square(origin, None);
+        self.set_square(target, piece);
     }
 
     pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
@@ -128,7 +128,7 @@ impl Board {
         for i in (0..8).rev() {
             counter = 0;
             for j in 0..8 {
-                match self.get_piece(Position(j, i)) {
+                match self.get_square(Position(j, i)) {
                     Some(piece) => {
                         if counter > 0 {
                             notation.push_str(&format!("{}", counter));
@@ -198,7 +198,7 @@ impl fmt::Debug for Board {
             string.push_str(&format!("{} ", i + 1));
 
             for j in 0..8 {
-                let square = self.get_piece(Position(j, i));
+                let square = self.get_square(Position(j, i));
                 let representation = match square {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',

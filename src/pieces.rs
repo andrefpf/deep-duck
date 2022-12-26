@@ -20,7 +20,7 @@ pub enum PieceKind {
     King,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Position(pub i32, pub i32);
 
 impl Piece {
