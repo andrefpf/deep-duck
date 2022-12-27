@@ -42,20 +42,17 @@ fn evaluate_recursive(board: &Board, color: Color, depth: usize, alpha: i32, bet
     
     let mut alpha = alpha;
     let mut tmp_score: i32;
+    let mut tmp_board: Board;
 
     let next_color = match color {
         Color::White => Color::Black,
         Color::Black => Color::White,
     };
 
-    let mut possible_boards = Movement::avaliable_moves(board, color)
-                          .iter()
-                          .map(|mv| board.copy_and_move(mv.origin, mv.target))
-                          .collect::<Vec<Board>>();
-    
-    possible_boards.sort_by(|a, b| evaluate(b, color).cmp(&evaluate(a, color)));
+    let avaliable_moves = Movement::avaliable_moves(board, color);
 
-    for tmp_board in possible_boards {
+    for mv in avaliable_moves {
+        tmp_board = board.copy_and_move(mv.origin, mv.target);
         tmp_score = -evaluate_recursive(&tmp_board, next_color, depth - 1, -beta, -alpha);
         
         if tmp_score >= beta {
