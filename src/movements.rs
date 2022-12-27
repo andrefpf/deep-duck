@@ -43,7 +43,7 @@ impl Movement {
     }
 
     pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let piece = match board.get_square(origin).piece {
+        let piece = match board.get_square(origin.0 as usize, origin.1 as usize).piece {
             Some(p) => p,
             None => return Vec::<Movement>::new(), // goes out if None
         };
@@ -232,7 +232,7 @@ impl Movement {
     }
 
     fn pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        match board.get_square(origin).piece {
+        match board.get_square(origin.0 as usize, origin.1 as usize).piece {
             Some(Piece{color:Color::White, kind:_}) => Self::white_pawn_moves(board, origin),
             Some(Piece{color:Color::Black, kind:_}) => Self::black_pawn_moves(board, origin),
             None => Vec::<Movement>::new(),
@@ -348,12 +348,12 @@ impl Movement {
             return MoveKind::Invalid;
         }
 
-        let origin_piece = match board.get_square(movement.origin).piece {
+        let origin_piece = match board.get_square(movement.origin.0 as usize, movement.origin.1 as usize).piece {
             Some(p) => p,
             None => return MoveKind::Invalid,
         };
         
-        if let Some(target_square) = board.get_square(movement.target).piece {
+        if let Some(target_square) = board.get_square(movement.target.0 as usize, movement.target.1 as usize).piece {
             if origin_piece.color == target_square.color {
                 return MoveKind::Invalid;
             } else {

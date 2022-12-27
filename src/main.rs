@@ -2,19 +2,18 @@ mod board;
 mod pieces;
 mod movements;
 mod engine;
+mod fen;
 
 use crate::board::Board;
-use crate::pieces::Position;
 use crate::pieces::Color;
-use crate::movements::Movement;
 use crate::engine::search;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 fn example() {
     let mut board = Board::from_fen("r3k2r/p1ppqpb1/Bn2pnp1/3PN3/1p2P3/2N4p/PPPB1PPP/R3K2R w - - 0 1");
     println!("{:?} \n", board);
     
-    let mut color = Color::Black;
+    let color = Color::Black;
     let best_move = search(&board, color, 3);
     
     if let Some(best_move) = best_move {
@@ -23,7 +22,7 @@ fn example() {
         println!("{:?}", board);
     }
     
-    // println!("{}", board.to_fen());
+    println!("{}", board.to_fen());
 }
 
 fn main() {

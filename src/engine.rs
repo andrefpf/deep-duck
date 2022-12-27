@@ -1,7 +1,6 @@
 use std::cmp;
 use crate::board::Board;
 use crate::pieces::PieceKind;
-use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;

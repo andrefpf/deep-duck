@@ -1,10 +1,9 @@
 use std::fmt;
-
-use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
+use crate::fen;
 
 pub struct Square {
     pub pos: Position,
@@ -13,8 +12,8 @@ pub struct Square {
 
 #[derive(Clone)]
 pub struct Castle {
-    short: bool,
-    long: bool,
+    pub short: bool,
+    pub long: bool,
 }
 
 #[derive(Clone)]
@@ -50,13 +49,22 @@ impl Board {
         }
     }
 
+    pub fn from_fen(notation: &str) -> Self {
+        fen::fen_to_board(notation)
+    }
+    
+    pub fn arranged() -> Self {
+        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board
+    }
+
     pub fn ocuppied_squares(&self) -> Vec::<Square> {
         let mut squares = Vec::<Square>::with_capacity(32);
 
         for i in 0..8 {
             for j in 0..8 {
-                let square = self.get_square(Position(i, j));
-                if let Some(piece) = square.piece {
+                let square = self.get_square(i, j);
+                if let Some(_) = square.piece {
                     squares.push(square);
                 }
             }
@@ -65,46 +73,10 @@ impl Board {
         squares
     }
 
-    pub fn from_fen(notation: &str) -> Self {
-        let mut board = Board::new();
-        let mut x: i32 = 0;
-        let mut y: i32 = 0;
-
-        for c in notation.chars() {
-            match c {
-                ' ' => break,
-
-                '/' => {
-                    x = 0;
-                    y = y + 1;
-                },
-
-                '1'..='8' => {
-                    let int_c: i32 = c as i32 - 0x30;
-                    x = x + int_c;
-                },
-                
-                _ => {
-                    let square = Square{pos:Position(x, 7-y), piece:Some(Piece::from_fen(c))};
-                    board.set_square(square);
-                    x = x + 1;
-                }
-            }
-        }
-
-        board
-    }
-    
-    pub fn arranged() -> Self {
-        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        board
-    }
-
-    pub fn get_square(&self, pos: Position) -> Square {
-        let index = pos.0 + 8 * pos.1;
-        assert!(index >= 0);
+    pub fn get_square(&self, x: usize, y: usize) -> Square {
+        let index = x + 8 * y;
         Square {
-            pos,
+            pos: Position(x as i32, y as i32),
             piece:self.data[index as usize],
         }
     }
@@ -116,7 +88,7 @@ impl Board {
     }
     
     pub fn make_move(&mut self, origin: Position, target: Position) {
-        let origin_square = self.get_square(origin.clone());
+        let origin_square = self.get_square(origin.0 as usize, origin.1 as usize);
         self.move_counter = self.move_counter + 1;
         self.set_square(Square{pos:origin, piece:None});
         self.set_square(Square{pos:target, piece:origin_square.piece});
@@ -129,90 +101,8 @@ impl Board {
     }
     
     pub fn to_fen(&self) -> String {
-        let mut notation = self.pieces_fen();
-        
-        notation.push(' ');
-        match self.active_color {
-            Color::White => notation.push('w'),
-            Color::Black => notation.push('b'),
-        }
-        notation.push(' ');
-        notation.push_str(&self.castle_fen());
-        notation.push(' ');
-        notation.push_str(&self.en_passant_fen());
-        notation.push_str(&format!(" {} 1", self.move_counter));
-        
-        notation
+        fen::board_to_fen(self)
     }
-
-    fn pieces_fen(&self) -> String {
-        let mut notation = String::new();
-        let mut counter;
-
-        for i in (0..8).rev() {
-            counter = 0;
-            for j in 0..8 {
-                let square = self.get_square(Position(j, i));
-                match square.piece {
-                    Some(piece) => {
-                        if counter > 0 {
-                            notation.push_str(&format!("{}", counter));
-                            counter = 0;
-                        }
-                        notation.push(piece.fen_repr());
-                    },
-                    None => counter = counter + 1,
-                }
-            }
-            if counter > 0 {
-                notation.push_str(&format!("{}", counter));
-            }
-            notation.push('/');
-        }
-        notation.pop(); // remove last slash 
-
-        notation
-    }
-
-    fn castle_fen(&self) -> String {
-        let mut notation = String::new();
-        let no_castle = !(self.white_castle.short || self.white_castle.long || self.black_castle.short || self.black_castle.long);
-
-        if no_castle {
-            notation.push('-');
-            return notation;
-        }
-
-        if self.white_castle.short {
-            notation.push('K')
-        }
-        if self.white_castle.long {
-            notation.push('Q')
-        }
-        if self.black_castle.short {
-            notation.push('k')
-        }
-        if self.black_castle.short {
-            notation.push('q')
-        }
-
-        notation
-    }
-
-    fn en_passant_fen(&self) -> String {
-        if !self.en_passant {
-            return String::from("-");
-        }
-
-        if let Some(movement) = self.last_move {
-            let indexes = "abcdefgh";
-            if let Some(char_index) = indexes.chars().nth(movement.target.0 as usize) {
-                return String::from(format!("{}{}", char_index, movement.target.1 + 1));
-            }
-        }
-
-        String::from("-")
-    }    
 }
 
 impl fmt::Debug for Board {
@@ -223,7 +113,7 @@ impl fmt::Debug for Board {
             string.push_str(&format!("{} ", i + 1));
 
             for j in 0..8 {
-                let square = self.get_square(Position(j, i));
+                let square = self.get_square(j, i);
                 let representation = match square.piece {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',
