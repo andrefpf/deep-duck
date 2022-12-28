@@ -18,14 +18,14 @@ enum MoveKind {
 }
 
 impl Movement {
-    pub fn avaliable_moves(board: &Board, color: Color) -> Vec::<Movement>{
+    pub fn avaliable_moves(board: &Board) -> Vec::<Movement>{
         let mut movements = Vec::<Movement>::with_capacity(140);
         let mut king_found = false;
 
         for square in board.ocuppied_squares() {
             let piece = square.piece.unwrap();
             
-            if piece.color == color {
+            if piece.color == board.active_color {
                 let mut piece_movements = Self::piece_moves(board, square.pos);
                 movements.append(&mut piece_movements);
                 

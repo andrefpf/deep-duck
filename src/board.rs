@@ -90,6 +90,12 @@ impl Board {
     pub fn make_move(&mut self, origin: Position, target: Position) {
         let origin_square = self.get_square(origin.0 as usize, origin.1 as usize);
         self.move_counter = self.move_counter + 1;
+
+        self.active_color = match self.active_color {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+        };
+    
         self.set_square(Square{pos:origin, piece:None});
         self.set_square(Square{pos:target, piece:origin_square.piece});
     }

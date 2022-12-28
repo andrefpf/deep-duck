@@ -11,13 +11,13 @@ pub fn fen_to_board(notation: &str) -> Board {
 
     let pieces_part = notation_parts.nth(0).unwrap();
     let color_part = notation_parts.nth(0).unwrap();
-    let castle_part = notation_parts.nth(0).unwrap();
-    let en_passant_part = notation_parts.nth(0).unwrap();
+    // let castle_part = notation_parts.nth(0).unwrap();
+    // let en_passant_part = notation_parts.nth(0).unwrap();
 
     _pieces_decode(&mut board, pieces_part);
     _color_decode(&mut board, color_part);
-    _castle_decode(&mut board, castle_part);
-    _en_passant_decode(&mut board, en_passant_part);
+    // _castle_decode(&mut board, castle_part);
+    // _en_passant_decode(&mut board, en_passant_part);
 
     board
 }
@@ -130,8 +130,8 @@ fn _castle_encode(board: &Board) -> String {
     notation
 }
 
-fn _castle_decode(board: &mut Board, notation_part: &str) {
-}
+// fn _castle_decode(board: &mut Board, notation_part: &str) {
+// }
 
 fn _en_passant_encode(board: &Board) -> String {
     if !board.en_passant {
@@ -148,8 +148,8 @@ fn _en_passant_encode(board: &Board) -> String {
     String::from("-")
 }
 
-fn _en_passant_decode(board: &mut Board, notation_part: &str) {
-}
+// fn _en_passant_decode(board: &mut Board, notation_part: &str) {
+// }
 
 fn piece_to_fen(piece: &Piece) -> char {
     match (piece.color, piece.kind) {
