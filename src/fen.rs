@@ -7,30 +7,17 @@ use crate::pieces::Color;
 
 pub fn fen_to_board(notation: &str) -> Board {
     let mut board = Board::new();
-    let mut x: i32 = 0;
-    let mut y: i32 = 0;
+    let mut notation_parts = notation.split(" ");
 
-    for c in notation.chars() {
-        match c {
-            ' ' => break,
+    let pieces_part = notation_parts.nth(0).unwrap();
+    let color_part = notation_parts.nth(0).unwrap();
+    let castle_part = notation_parts.nth(0).unwrap();
+    let en_passant_part = notation_parts.nth(0).unwrap();
 
-            '/' => {
-                x = 0;
-                y = y + 1;
-            },
-
-            '1'..='8' => {
-                let int_c: i32 = c as i32 - 0x30;
-                x = x + int_c;
-            },
-            
-            _ => {
-                let square = Square{pos:Position(x, 7-y), piece:Some(fen_to_piece(c))};
-                board.set_square(square);
-                x = x + 1;
-            }
-        }
-    }
+    _pieces_decode(&mut board, pieces_part);
+    _color_decode(&mut board, color_part);
+    _castle_decode(&mut board, castle_part);
+    _en_passant_decode(&mut board, en_passant_part);
 
     board
 }
@@ -38,37 +25,16 @@ pub fn fen_to_board(notation: &str) -> Board {
 pub fn board_to_fen(board: &Board) -> String {
     String::from(
         format!("{} {} {} {} {} {}",
-            _pieces_part(board),
-            _color_part(board),
-            _castle_part(board),
-            _en_passant_part(board),
+            _pieces_encode(board),
+            _color_encode(board),
+            _castle_encode(board),
+            _en_passant_encode(board),
             board.move_counter,
             1,
         ))
-
-
-
-    // let mut notation = _pieces_part(board);
-    
-    // notation.push(' ');
-    // notation.push_str(_color_part(board))
-    // notation.push(' ');
-    // notation.push_str(&board.castle_fen());
-    // notation.push(' ');
-    // notation.push_str(&board.en_passant_fen());
-    // notation.push_str(&format!(" {} 1", board.move_counter));
-    
-    // notation
 }
 
-fn _color_part(board: &Board) -> String {
-    match board.active_color {
-        Color::White => String::from("w"),
-        Color::Black => String::from("b"),
-    }
-}
-
-fn _pieces_part(board: &Board) -> String {
+fn _pieces_encode(board: &Board) -> String {
     let mut notation = String::new();
     let mut counter;
 
@@ -97,7 +63,49 @@ fn _pieces_part(board: &Board) -> String {
     notation
 }
 
-fn _castle_part(board: &Board) -> String {
+fn _pieces_decode(board: &mut Board, notation_part: &str) {
+    let mut x: i32 = 0;
+    let mut y: i32 = 0;
+
+    for c in notation_part.chars() {
+        match c {
+            ' ' => break,
+
+            '/' => {
+                x = 0;
+                y = y + 1;
+            },
+
+            '1'..='8' => {
+                let int_c: i32 = c as i32 - 0x30;
+                x = x + int_c;
+            },
+            
+            _ => {
+                let square = Square{pos:Position(x, 7-y), piece:Some(fen_to_piece(c))};
+                board.set_square(square);
+                x = x + 1;
+            }
+        }
+    }
+}
+
+fn _color_encode(board: &Board) -> String {
+    match board.active_color {
+        Color::White => String::from("w"),
+        Color::Black => String::from("b"),
+    }
+}
+
+fn _color_decode(board: &mut Board, notation_part: &str) {
+    match notation_part {
+        "w" => board.active_color = Color::White,
+        "b" => board.active_color = Color::Black,
+        _ => panic!("Invalid color")
+    }
+}
+
+fn _castle_encode(board: &Board) -> String {
     let mut notation = String::new();
     let no_castle = !(board.white_castle.short || board.white_castle.long || board.black_castle.short || board.black_castle.long);
 
@@ -122,7 +130,10 @@ fn _castle_part(board: &Board) -> String {
     notation
 }
 
-fn _en_passant_part(board: &Board) -> String {
+fn _castle_decode(board: &mut Board, notation_part: &str) {
+}
+
+fn _en_passant_encode(board: &Board) -> String {
     if !board.en_passant {
         return String::from("-");
     }
@@ -135,7 +146,10 @@ fn _en_passant_part(board: &Board) -> String {
     }
 
     String::from("-")
-}    
+}
+
+fn _en_passant_decode(board: &mut Board, notation_part: &str) {
+}
 
 fn piece_to_fen(piece: &Piece) -> char {
     match (piece.color, piece.kind) {
