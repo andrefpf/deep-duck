@@ -6,7 +6,7 @@ use crate::movements::Movement;
 
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
-    let mut best_score = i32::MIN;
+    let mut best_score = -i32::MAX;
     let mut tmp_score: i32;
     let mut tmp_board: Board;
 
@@ -14,7 +14,8 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
 
     for movement in avaliable_moves {
         tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, depth, -i32::MAX, i32::MAX);
+        tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, -best_score);
+
         if best_score < tmp_score {
             best_score = tmp_score;
             best_movement = Some(movement);
