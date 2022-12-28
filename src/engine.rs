@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_forks() {
         let board = Board::from_fen("r3k3/2b5/5r2/2KN4/8/8/8/8 w - - 0 1");
-        let best_move = search(&board, 2);
+        let best_move = search(&board, 3);
 
         if let None = best_move {
             panic!("No moves found");
