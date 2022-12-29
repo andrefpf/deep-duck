@@ -1,4 +1,5 @@
 use crate::board::Board;
+use crate::board::Square;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
@@ -8,18 +9,62 @@ use crate::pieces::Color;
 pub struct Movement {
     pub origin: Position,
     pub target: Position,
+    pub moved: PieceKind,
+    pub captured: Option<PieceKind>,
+    pub promotion: Option<PieceKind>
 }
 
-#[derive(Debug)]
-enum MoveKind {
-    Simple,
-    Capture,
-    Invalid,
+enum MovementDirection {
+    Up,
+    Down,
+    Left,
+    Right,
+    UpperLeft,
+    UpperRight,
+    BottomLeft,
+    BottomRight,
 }
 
 impl Movement {
-    pub fn avaliable_moves(board: &Board) -> Vec::<Movement>{
-        let mut movements = Vec::<Movement>::with_capacity(140);
+    fn from_coords(board: &Board, x0: i32, y0: i32, x1: i32, y1: i32) -> Option<Self> {
+        if !Self::in_boundaries(x0, y0) || !Self::in_boundaries(x1, y1) {
+            return None;
+        }
+
+        // if it is in boundaries we can safely convert to usize
+        let (x0, y0, x1, y1) = (x0 as usize, y0 as usize, x1 as usize, y1 as usize);
+
+        let origin_square = board.get_square(x0, y0);
+        let target_square = board.get_square(x1, y1);
+
+        // if we can not unwrap, the movement is invalid anyway
+        let origin_piece = origin_square.piece.unwrap();
+        let captured = match target_square.piece {
+            Some(piece) => Some(piece.kind),
+            None => None
+        };
+
+        // you cant capture your own pieces
+        if let Some(target_piece) = target_square.piece {
+            if origin_piece.color == target_piece.color {
+                return None;
+            }
+        }
+
+        // TODO: change position values to usize
+        let movement = Movement {
+            origin: Position(x0 as i32, y0 as i32),
+            target: Position(x1 as i32, y1 as i32),
+            moved: origin_piece.kind,
+            captured,
+            promotion: None,
+        };
+
+        Some(movement)
+    }
+
+    pub fn avaliable_moves(board: &Board) -> Vec::<Self>{
+        let mut movements = Vec::<Self>::with_capacity(140);
         let mut king_found = false;
 
         for square in board.ocuppied_squares() {
@@ -42,325 +87,191 @@ impl Movement {
         movements
     }
 
-    pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let piece = match board.get_square(origin.0 as usize, origin.1 as usize).piece {
-            Some(p) => p,
-            None => return Vec::<Movement>::new(), // goes out if None
-        };
+    pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Self> {
+        let piece = board.get_square(origin.0 as usize, origin.1 as usize).piece;
+
+        if piece.is_none() {
+            return Vec::<Self>::new();
+        }
         
-        match piece.kind {
+        match piece.unwrap().kind {
             PieceKind::Rook => Self::rook_moves(board, origin),
             PieceKind::Bishop => Self::bishop_moves(board, origin),
             PieceKind::Queen => Self::queen_moves(board, origin),
             PieceKind::King => Self::king_moves(board, origin),
             PieceKind::Knight => Self::knight_moves(board, origin),
             PieceKind::Pawn => Self::pawn_moves(board, origin),
+            _ => Vec::<Self>::new()
         }
     }
 
-    fn rook_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    fn rook_moves(board: &Board, origin: Position) -> Vec<Self> {
+        [
+            Self::slide_movements(board, origin, MovementDirection::Up),
+            Self::slide_movements(board, origin, MovementDirection::Down),
+            Self::slide_movements(board, origin, MovementDirection::Left),
+            Self::slide_movements(board, origin, MovementDirection::Right),
+        ].concat()
+    }
+
+    fn bishop_moves(board: &Board, origin: Position) -> Vec<Self> {
+        [
+            Self::slide_movements(board, origin, MovementDirection::UpperLeft),
+            Self::slide_movements(board, origin, MovementDirection::UpperRight),
+            Self::slide_movements(board, origin, MovementDirection::BottomLeft),
+            Self::slide_movements(board, origin, MovementDirection::BottomRight),
+        ].concat()
+    }
+
+    fn queen_moves(board: &Board, origin: Position) -> Vec<Self> {
+        [Self::rook_moves(board, origin), Self::bishop_moves(board, origin)].concat()
+    }
+
+    fn king_moves(board: &Board, origin: Position) -> Vec<Self> {
+        let displacement = Vec::from([
+            (-1, 1), (0, 1), (1, 1), 
+            (-1, 0), (1, 0), 
+            (-1, -1), (0, -1), (1, -1), 
+        ]);
+        Self::jump_movements(board, origin, displacement)
+    }
+
+    fn knight_moves(board: &Board, origin: Position) -> Vec<Self> {
+        let displacement = Vec::from([
+            (-1, 2),
+            (-1, -2),
+            (-2, 1),
+            (-2, -1),
+            (1, 2),
+            (1, -2),
+            (2, 1),
+            (2, -1),
+        ]);
+        Self::jump_movements(board, origin, displacement)
+    }
+
+    fn pawn_moves(board: &Board, origin: Position) -> Vec<Self> {
         let mut movements = Vec::<Movement>::new();
         
-        let start = origin.0 + 1;
-        let end = 8;
-        for i in start..end {
-            let target = Position(i, origin.1);
-            let movement = Movement{origin, target};
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            }
-        }
-                
-        let start = 0;
-        let end = origin.0;
-        for i in (start..end).rev() {
-            let target = Position(i, origin.1);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            }
-        }
+        let direction: i32;
+        let promotion: i32;
 
-        let start = origin.1 + 1;
-        let end = 8;
-        for i in start..end {
-            let target = Position(origin.0, i);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            }
-        }
-        
-        let start = 0;
-        let end = origin.1;
-        for i in (start..end).rev() {
-            let target = Position(origin.0, i);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            }
-        }
-        
-        movements
-    }
-
-    fn bishop_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let mut movements = Vec::<Movement>::new();
-        
-        // I dont care about the boundaries
-        // if it is out, the movement will be Invalid
-        
-        for i in 1..8 {
-            let target = Position(origin.0 + i, origin.1 + i);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            };
-        }
-        
-        for i in 1..8 {
-            let target = Position(origin.0 + i, origin.1 - i);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            };
-        }
-        
-        for i in 1..8 {
-            let target = Position(origin.0 - i, origin.1 + i);
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            };
-        }
-
-        for i in 1..8 {
-            let target = Position(origin.0 - i, origin.1 - i);
-            let movement = Movement{origin, target};
-
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => {movements.push(movement); break},
-                MoveKind::Invalid => break,
-            };
-        }
-
-        movements
-    }
-
-    fn queen_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let rook = Self::rook_moves(board, origin);
-        let bishop = Self::bishop_moves(board, origin);
-        [rook, bishop].concat()
-    }
-
-    fn king_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let mut movements = Vec::<Movement>::new();
-        let existing_moves = [
-            Position(origin.0 - 1, origin.1 - 1),
-            Position(origin.0 - 1, origin.1),
-            Position(origin.0 - 1, origin.1 + 1),
-            
-            Position(origin.0,  origin.1 - 1),
-            Position(origin.0,  origin.1 + 1),
-            
-            Position(origin.0 + 1, origin.1 - 1),
-            Position(origin.0 + 1, origin.1),
-            Position(origin.0 + 1, origin.1 + 1),
-        ];
-
-        for target in existing_moves {
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => movements.push(movement),
-                MoveKind::Invalid => (),
-            };
-        }
-        
-        movements
-    }
-
-    fn knight_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let mut movements = Vec::<Movement>::new();
-        let existing_moves = [
-            Position(origin.0 - 1, origin.1 - 2),
-            Position(origin.0 - 1, origin.1 + 2),
-            
-            Position(origin.0 - 2, origin.1 - 1),
-            Position(origin.0 - 2, origin.1 + 1),
-            
-            Position(origin.0 + 1, origin.1 - 2),
-            Position(origin.0 + 1, origin.1 + 2),
-            
-            Position(origin.0 + 2, origin.1 - 1),
-            Position(origin.0 + 2, origin.1 + 1),
-            ];
-            
-        for target in existing_moves {
-            let movement = Movement{origin, target};
-            
-            match Self::check_move(board, movement) {
-                MoveKind::Simple => movements.push(movement),
-                MoveKind::Capture => movements.push(movement),
-                MoveKind::Invalid => (),
-            };
-        }
-        
-        movements
-    }
-
-    fn pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
         match board.get_square(origin.0 as usize, origin.1 as usize).piece {
-            Some(Piece{color:Color::White, kind:_}) => Self::white_pawn_moves(board, origin),
-            Some(Piece{color:Color::Black, kind:_}) => Self::black_pawn_moves(board, origin),
-            None => Vec::<Movement>::new(),
+            Some(Piece{color:Color::White, kind:_}) => {direction = 1; promotion = 7},
+            Some(Piece{color:Color::Black, kind:_}) => {direction = -1; promotion = 0},
+            None => return movements,
         }
-    }
 
-    fn white_pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
-        let mut movements = Vec::<Movement>::new();
-        
-        let move_ahead = Movement{origin, target:Position(origin.0, origin.1 + 1)};
-        let double_move = Movement{origin, target:Position(origin.0, origin.1 + 2)};
-        let take_left = Movement{origin, target:Position(origin.0 - 1, origin.1 + 1)};
-        let take_right = Movement{origin, target:Position(origin.0 + 1, origin.1 + 1)};
-        
-        if let MoveKind::Simple = Self::check_move(board, move_ahead) {
-            movements.push(move_ahead);
+        let Position(x, y) = origin;
 
-            if origin.1 == 1 {
-                if let MoveKind::Simple = Self::check_move(board, double_move) {
-                    movements.push(double_move);
+        if let Some(movement) = Self::from_coords(board, x, y, x, y + direction) {
+            if movement.captured.is_none() {
+                if y + direction == promotion {
+                    movements.append(&mut Self::promotions(&movement));
+                } else {
+                    movements.push(movement);
                 }
             }
         }
-        
-        if let MoveKind::Capture = Self::check_move(board, take_left) {
-            movements.push(take_left);
-        }
-        
-        if let MoveKind::Capture = Self::check_move(board, take_right) {
-            movements.push(take_right);
-        }
-        
-        if board.en_passant {
-            if let Some(movement) = board.last_move {
-                if let MoveKind::Simple = Self::check_move(board, take_left) {
-                    if movement.target.0 == (origin.0 - 1) && movement.target.1 == origin.1 {
-                        movements.push(take_left);
-                    }
+
+        if let Some(movement) = Self::from_coords(board, x, y, x - 1, y + direction) {
+            if movement.captured.is_some() {
+                if y + direction == promotion {
+                    movements.append(&mut Self::promotions(&movement));
+                } else {
+                    movements.push(movement);
                 }
-                
-                if let MoveKind::Simple = Self::check_move(board, take_right) {
-                    if movement.target.0 == (origin.0 + 1) && movement.target.1 == origin.1 {
-                        movements.push(take_right);
-                    }
+            }
+        }
+
+        if let Some(movement) = Self::from_coords(board, x, y, x + 1, y + direction) {
+            if movement.captured.is_some() {
+                if y + direction == promotion {
+                    movements.append(&mut Self::promotions(&movement));
+                } else {
+                    movements.push(movement);
                 }
+            }
+        }
+
+        // first double move
+        if y == promotion - 6*direction {
+            let try_movement = Self::from_coords(board, x, y, x, y + direction);
+            let can_move_one = try_movement.is_some() && try_movement.unwrap().captured.is_none();
+
+            if can_move_one {
+                if let Some(movement) = Self::from_coords(board, x, y, x, y + 2*direction) {
+                    if movement.captured.is_none() {
+                        movements.push(movement);
+                    }        
+                }    
             }
         }
 
         movements
     }
 
-    fn black_pawn_moves(board: &Board, origin: Position) -> Vec::<Movement> {
+    fn promotions(movement: &Movement) -> Vec<Self> {
         let mut movements = Vec::<Movement>::new();
-        
-        let move_ahead = Movement{origin, target:Position(origin.0, origin.1 - 1)};
-        let double_move = Movement{origin, target:Position(origin.0, origin.1 - 2)};
-        let take_left = Movement{origin, target:Position(origin.0 - 1, origin.1 - 1)};
-        let take_right = Movement{origin, target:Position(origin.0 + 1, origin.1 - 1)};
-        
-        if let MoveKind::Simple = Self::check_move(board, move_ahead) {
-            movements.push(move_ahead);
-            
-            if origin.1 == 6 {
-                if let MoveKind::Simple = Self::check_move(board, double_move) {
-                    movements.push(double_move);
-                }
-            }
-        }
-        
-        if let MoveKind::Capture = Self::check_move(board, take_left) {
-            movements.push(take_left);
+        let promotions = [PieceKind::Knight, PieceKind::Queen]; // the only reasonable promotions
+        // let promotions = [PieceKind::Rook, PieceKind::Knight, PieceKind::Bishop, PieceKind::Queen];
+
+        for kind in promotions {
+            let mut tmp_movement = movement.clone();
+            tmp_movement.promotion = Some(kind);
+            movements.push(tmp_movement);
         }
 
-        if let MoveKind::Capture = Self::check_move(board, take_right) {
-            movements.push(take_right);
-        }
-        
-        if board.en_passant {
-            if let Some(movement) = board.last_move {
-                if let MoveKind::Simple = Self::check_move(board, take_left) {
-                    if movement.target.0 == (origin.0 - 1) && movement.target.1 == origin.1 {
-                        movements.push(take_left);
-                    }
-                }
-                
-                if let MoveKind::Simple = Self::check_move(board, take_right) {
-                    if movement.target.0 == (origin.0 + 1) && movement.target.1 == origin.1 {
-                        movements.push(take_right);
-                    }
-                }
-            }
-        }
-        
         movements
     }
 
-    fn check_move(board: &Board, movement: Movement) -> MoveKind {
-        // Helper to check if we made a capture, simple movement or invalid movement
-        
-        if movement.origin.0 < 0 || movement.origin.1 < 0 {
-            return MoveKind::Invalid;
-        }
-        
-        if movement.origin.0 >= 8 || movement.origin.1 >= 8 {
-            return MoveKind::Invalid;
-        }
-        
-        if movement.target.0 < 0 || movement.target.1 < 0 {
-            return MoveKind::Invalid;
-        }
-        
-        if movement.target.0 >= 8 || movement.target.1 >= 8 {
-            return MoveKind::Invalid;
-        }
+    fn in_boundaries(x: i32, y: i32) -> bool {
+        (0..8).contains(&x) && (0..8).contains(&y)
+    }
 
-        let origin_piece = match board.get_square(movement.origin.0 as usize, movement.origin.1 as usize).piece {
-            Some(p) => p,
-            None => return MoveKind::Invalid,
+    fn slide_movements(board: &Board, origin: Position, direction: MovementDirection) -> Vec::<Self> {
+        let (dx, dy) = match direction {
+            MovementDirection::Up => (0, 1),
+            MovementDirection::Down => (0, -1),
+            MovementDirection::Left => (-1, 0),
+            MovementDirection::Right => (1, 0),
+            MovementDirection::UpperLeft => (-1, 1),
+            MovementDirection::UpperRight => (1, 1),
+            MovementDirection::BottomLeft => (-1, 1),
+            MovementDirection::BottomRight => (1, 1),
         };
-        
-        if let Some(target_square) = board.get_square(movement.target.0 as usize, movement.target.1 as usize).piece {
-            if origin_piece.color == target_square.color {
-                return MoveKind::Invalid;
+
+        let mut movements = Vec::<Movement>::new();
+
+        for i in 1..8 {
+            let Position(x, y) = origin;
+            let try_movement = Self::from_coords(board, x, y, x + i*dx, y + i*dy);
+
+            if let Some(movement) = try_movement {      
+                movements.push(movement);
+                if movement.captured.is_some() {
+                    break;
+                }
             } else {
-                return MoveKind::Capture;
+                break
             }
-        } else {
-            return MoveKind::Simple;
         }
+
+        movements
+    }
+
+    fn jump_movements(board: &Board, origin: Position, displacement: Vec<(i32, i32)>) -> Vec::<Movement> {
+        let mut movements = Vec::<Movement>::new();
+
+        for (dx, dy) in displacement {
+            let Position(x, y) = origin;
+            let try_movement = Self::from_coords(board, x, y, x + dx, y + dy);
+
+            if let Some(movement) = try_movement {              
+                movements.push(movement);
+            }
+        }
+
+        movements
     }
 }
