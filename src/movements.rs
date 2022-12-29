@@ -1,5 +1,4 @@
 use crate::board::Board;
-use crate::board::Square;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
@@ -101,7 +100,6 @@ impl Movement {
             PieceKind::King => Self::king_moves(board, origin),
             PieceKind::Knight => Self::knight_moves(board, origin),
             PieceKind::Pawn => Self::pawn_moves(board, origin),
-            _ => Vec::<Self>::new()
         }
     }
 
