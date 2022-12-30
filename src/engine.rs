@@ -25,20 +25,25 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     best_movement
 }
 
-pub fn evaluate(board: &Board) -> i32 {
+pub fn evaluate(board: &Board, depth: usize) -> i32 {
+    evaluate_recursive(board, depth, -i32::MAX, i32::MAX)
+}
+
+fn evaluate_static(board: &Board) -> i32 {
     count_material(board)
 }
 
 fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32) -> i32 {
     if depth == 0 {
-        return evaluate(board);
+        return evaluate_static(board);
     }
     
     let mut alpha = alpha;
     let mut tmp_score: i32;
     let mut tmp_board: Board;
 
-    let avaliable_moves = Movement::avaliable_moves(board);
+    let mut avaliable_moves = Movement::avaliable_moves(board);
+    avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     for mv in avaliable_moves {
         tmp_board = board.copy_and_move(mv.origin, mv.target);
@@ -53,6 +58,20 @@ fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32) -> i32
     alpha
 }
 
+fn estimate_movement(movement: &Movement) -> i32 {
+    let mut score = 0;
+
+    if let Some(captured) = movement.captured {
+        score += piece_value(captured);
+    }
+
+    if let Some(promotion) = movement.promotion {
+        score += 2 * piece_value(promotion);
+    }
+
+    score
+}
+
 fn count_material(board: &Board) -> i32 {
     let mut score: i32 = 0;
     
@@ -60,17 +79,17 @@ fn count_material(board: &Board) -> i32 {
         let piece = square.piece.unwrap();
             
         if piece.color == board.active_color {
-            score = score + piece_value(piece);
+            score = score + piece_value(piece.kind);
         } else {
-            score = score - piece_value(piece);
+            score = score - piece_value(piece.kind);
         }
     }
 
     score
 }
 
-fn piece_value(piece: Piece) -> i32 {
-    match piece.kind {
+fn piece_value(piece_kind: PieceKind) -> i32 {
+    match piece_kind {
         PieceKind::Pawn => 100,
         PieceKind::Bishop => 300,
         PieceKind::Knight => 300,

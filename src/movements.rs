@@ -235,8 +235,8 @@ impl Movement {
             MovementDirection::Right => (1, 0),
             MovementDirection::UpperLeft => (-1, 1),
             MovementDirection::UpperRight => (1, 1),
-            MovementDirection::BottomLeft => (-1, 1),
-            MovementDirection::BottomRight => (1, 1),
+            MovementDirection::BottomLeft => (-1, -1),
+            MovementDirection::BottomRight => (1, -1),
         };
 
         let mut movements = Vec::<Movement>::new();
