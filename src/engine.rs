@@ -45,6 +45,10 @@ fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32) -> i32
     let mut avaliable_moves = Movement::avaliable_moves(board);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
+    if avaliable_moves.len() == 0 {
+        return evaluate_static(board);
+    }
+
     for mv in avaliable_moves {
         tmp_board = board.copy_and_move(mv.origin, mv.target);
         tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -beta, -alpha);
