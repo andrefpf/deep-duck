@@ -5,11 +5,6 @@ use crate::pieces::Color;
 use crate::movements::Movement;
 use crate::fen;
 
-pub struct Square {
-    pub pos: Position,
-    pub piece: Option<Piece>,
-}
-
 #[derive(Clone)]
 pub struct Castle {
     pub short: bool,
@@ -58,14 +53,15 @@ impl Board {
         board
     }
 
-    pub fn ocuppied_squares(&self) -> Vec::<Square> {
-        let mut squares = Vec::<Square>::with_capacity(32);
+    pub fn ocuppied_squares(&self) -> Vec::<Piece> {
+        let mut squares = Vec::<Piece>::with_capacity(32);
 
         for i in 0..8 {
             for j in 0..8 {
-                let square = self.get_square(i, j);
-                if let Some(_) = square.piece {
-                    squares.push(square);
+                let pos = Position(i, j);
+                let square = self.get_square(pos);
+                if let Some(piece) = square {
+                    squares.push(piece);
                 }
             }
         }        
@@ -73,22 +69,26 @@ impl Board {
         squares
     }
 
-    pub fn get_square(&self, x: usize, y: usize) -> Square {
-        let index = x + 8 * y;
-        Square {
-            pos: Position(x as i32, y as i32),
-            piece:self.data[index as usize],
-        }
+    pub fn get_square(&self, pos: Position) -> Option<Piece> {
+        let index = pos.0 + 8 * pos.1;
+        self.data[index as usize]
     }
     
-    pub fn set_square(&mut self, square: Square) {
-        let index = square.pos.0 + 8 * square.pos.1;
+    pub fn set_square(&mut self, pos: Position, square: Option<Piece>) {
+        let mut target_square = square;
+
+        if let Some(mut piece) = square {
+            piece.pos = pos;
+            target_square = Some(piece);
+        } 
+
+        let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
-        self.data[index as usize] = square.piece;
+        self.data[index as usize] = target_square;
     }
     
     pub fn make_move(&mut self, origin: Position, target: Position) {
-        let origin_square = self.get_square(origin.0 as usize, origin.1 as usize);
+        let square = self.get_square(origin);
         self.move_counter = self.move_counter + 1;
 
         self.active_color = match self.active_color {
@@ -96,8 +96,8 @@ impl Board {
             Color::Black => Color::White,
         };
     
-        self.set_square(Square{pos:origin, piece:None});
-        self.set_square(Square{pos:target, piece:origin_square.piece});
+        self.set_square(origin, None);
+        self.set_square(target, square);
     }
 
     pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
@@ -119,8 +119,9 @@ impl fmt::Debug for Board {
             string.push_str(&format!("{} ", i + 1));
 
             for j in 0..8 {
-                let square = self.get_square(j, i);
-                let representation = match square.piece {
+                let pos = Position(j, i);
+                let square = self.get_square(pos);
+                let representation = match square {
                     Some(piece) => piece.utf8_repr(),
                     None => ' ',
                 };

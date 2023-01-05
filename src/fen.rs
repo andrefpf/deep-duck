@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::board::Square;
+// use crate::board::Square;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
@@ -41,8 +41,9 @@ fn _pieces_encode(board: &Board) -> String {
     for i in (0..8).rev() {
         counter = 0;
         for j in 0..8 {
-            let square = board.get_square(j, i);
-            match square.piece {
+            let pos = Position(j, i);
+            let square = board.get_square(pos);
+            match square {
                 Some(piece) => {
                     if counter > 0 {
                         notation.push_str(&format!("{}", counter));
@@ -83,8 +84,8 @@ fn _pieces_decode(board: &mut Board, notation_part: &str) {
             
             _ => {
                 let pos = Position(x, 7-y);
-                let square = Square{pos, piece:Some(fen_to_piece(c, pos))};
-                board.set_square(square);
+                let square = Some(fen_to_piece(c, pos));
+                board.set_square(pos, square);
                 x = x + 1;
             }
         }

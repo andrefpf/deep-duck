@@ -11,10 +11,11 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut tmp_board: Board;
 
     let avaliable_moves = Movement::avaliable_moves(board);
+    let mut evaluated = 0;
 
     for movement in avaliable_moves {
         tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, -best_score);
+        tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, i32::MAX, &mut evaluated);
 
         if best_score < tmp_score {
             best_score = tmp_score;
@@ -22,18 +23,21 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
         }
     }
 
+    println!("Nodes evaluated depth {depth}: {evaluated}");
+
     best_movement
 }
 
 pub fn evaluate(board: &Board, depth: usize) -> i32 {
-    evaluate_recursive(board, depth, -i32::MAX, i32::MAX)
+    // evaluate_recursive(board, depth, -i32::MAX, i32::MAX)
+    0
 }
 
 fn evaluate_static(board: &Board) -> i32 {
     count_material(board)
 }
 
-fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32) -> i32 {
+fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32, evaluated: &mut usize) -> i32 {
     if depth == 0 {
         return evaluate_static(board);
     }
@@ -49,9 +53,11 @@ fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32) -> i32
         return evaluate_static(board);
     }
 
+    *evaluated += avaliable_moves.len();
+
     for mv in avaliable_moves {
         tmp_board = board.copy_and_move(mv.origin, mv.target);
-        tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -beta, -alpha);
+        tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -i32::MAX, i32::MAX, evaluated);
         
         if tmp_score >= beta {
             return beta;
@@ -79,9 +85,7 @@ fn estimate_movement(movement: &Movement) -> i32 {
 fn count_material(board: &Board) -> i32 {
     let mut score: i32 = 0;
     
-    for square in board.ocuppied_squares() {
-        let piece = square.piece.unwrap();
-            
+    for piece in board.ocuppied_squares() {            
         if piece.color == board.active_color {
             score = score + piece_value(piece.kind);
         } else {
@@ -124,7 +128,7 @@ mod tests {
     
     #[test]
     fn test_forks() {
-        let board = Board::from_fen("r3k3/2b5/5r2/2KN4/8/8/8/8 w - - 0 1");
+        let board = Board::from_fen("4k3/8/4r3/2KN4/8/8/8/8 w - - 0 1");
         let best_move = search(&board, 3);
 
         if let None = best_move {

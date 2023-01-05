@@ -31,20 +31,23 @@ impl Movement {
         }
 
         // if it is in boundaries we can safely convert to usize
-        let (x0, y0, x1, y1) = (x0 as usize, y0 as usize, x1 as usize, y1 as usize);
+        // let (x0, y0, x1, y1) = (x0 as usize, y0 as usize, x1 as usize, y1 as usize);
 
-        let origin_square = board.get_square(x0, y0);
-        let target_square = board.get_square(x1, y1);
+        let origin = Position(x0, y0);
+        let target = Position(x1, y1);
+
+        let origin_square = board.get_square(origin);
+        let target_square = board.get_square(target);
 
         // if we can not unwrap, the movement is invalid anyway
-        let origin_piece = origin_square.piece.unwrap();
-        let captured = match target_square.piece {
+        let origin_piece = origin_square.unwrap();
+        let captured = match target_square {
             Some(piece) => Some(piece.kind),
             None => None
         };
 
         // you cant capture your own pieces
-        if let Some(target_piece) = target_square.piece {
+        if let Some(target_piece) = target_square {
             if origin_piece.color == target_piece.color {
                 return None;
             }
@@ -66,11 +69,9 @@ impl Movement {
         let mut movements = Vec::<Self>::with_capacity(140);
         let mut king_found = false;
 
-        for square in board.ocuppied_squares() {
-            let piece = square.piece.unwrap();
-            
+        for piece in board.ocuppied_squares() {            
             if piece.color == board.active_color {
-                let mut piece_movements = Self::piece_moves(board, square.pos);
+                let mut piece_movements = Self::piece_moves(board, piece.pos);
                 movements.append(&mut piece_movements);
                 
                 if let PieceKind::King = piece.kind {
@@ -87,7 +88,7 @@ impl Movement {
     }
 
     pub fn piece_moves(board: &Board, origin: Position) -> Vec::<Self> {
-        let piece = board.get_square(origin.0 as usize, origin.1 as usize).piece;
+        let piece = board.get_square(origin);
 
         if piece.is_none() {
             return Vec::<Self>::new();
@@ -154,7 +155,7 @@ impl Movement {
         let direction: i32;
         let promotion: i32;
 
-        match board.get_square(origin.0 as usize, origin.1 as usize).piece {
+        match board.get_square(origin) {
             Some(Piece{pos:_, color:Color::White, kind:_}) => {direction = 1; promotion = 7},
             Some(Piece{pos:_, color:Color::Black, kind:_}) => {direction = -1; promotion = 0},
             None => return movements,
@@ -271,5 +272,24 @@ impl Movement {
         }
 
         movements
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_avaliable_white() {
+        let board = Board::from_fen("k6B/1P6/8/7R/8/1r6/P7/K5QN w - - 0 1");
+        let avaliable = Movement::avaliable_moves(&board);
+        assert_eq!(avaliable.len(), 48);
+    }
+    
+    #[test]
+    fn test_avaliable_black() {
+        let board = Board::from_fen("4k3/1p6/5r2/2KN4/8/2p5/1PPP4/8 b - - 0 1");
+        let avaliable = Movement::avaliable_moves(&board);
+        assert_eq!(avaliable.len(), 23);
     }
 }
