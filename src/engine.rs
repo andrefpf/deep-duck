@@ -4,20 +4,33 @@ use crate::pieces::PieceKind;
 use crate::pieces::Piece;
 use crate::movements::Movement;
 
+struct Prune {
+    alpha: i32,
+    beta: i32,
+    current: i32,
+}
+
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
-    let mut best_score = -i32::MAX;
-
     let avaliable_moves = Movement::avaliable_moves(board);
-    let current_score = count_material(board);
+
+    let mut prune = Prune {
+        alpha: -i32::MAX,
+        beta: i32::MAX,
+        current: count_material(board),
+    };
     
     for movement in avaliable_moves {
-        let current_score = current_score + move_points(&movement);
+        let tmp_prune = Prune{
+            alpha: -prune.beta, 
+            beta: -prune.alpha, 
+            current: -prune.current - move_points(&movement),
+        };
         let tmp_board = board.copy_and_move(movement.origin, movement.target);
-        let tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, i32::MAX, -current_score);
+        let tmp_score = -evaluate_recursive(&tmp_board, depth-1, tmp_prune);
 
-        if best_score < tmp_score {
-            best_score = tmp_score;
+        if prune.alpha < tmp_score {
+            prune.alpha = tmp_score;
             best_movement = Some(movement);
         }
     }
@@ -26,41 +39,48 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
 }
 
 pub fn evaluate(board: &Board, depth: usize) -> i32 {
-    let current_score = count_material(board);
-    evaluate_recursive(board, depth, -i32::MAX, i32::MAX, current_score)
+    let mut prune = Prune {
+        alpha: -i32::MAX,
+        beta: i32::MAX,
+        current: count_material(board),
+    };
+    evaluate_recursive(board, depth, prune)
 }
 
 fn evaluate_static(board: &Board) -> i32 {
     count_material(board)
 }
 
-fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32, current_score: i32) -> i32 {
+fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
     if depth == 0 {
-        return current_score;
-        // return evaluate_static(board);
+        return prune.current;
     }
     
-    let mut alpha = alpha;
     let mut avaliable_moves = Movement::avaliable_moves(board);
-    
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
-
+    
     if avaliable_moves.len() == 0 {
-        return evaluate_static(board);
+        return prune.current;
     }
+    
+    let mut prune = prune;
 
     for movement in avaliable_moves {
-        let current_score = current_score + move_points(&movement);
+        let tmp_prune = Prune{
+            alpha: -prune.beta, 
+            beta: -prune.alpha, 
+            current: -prune.current - move_points(&movement),
+        };
         let tmp_board = board.copy_and_move(movement.origin, movement.target);
-        let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -i32::MAX, i32::MAX, -current_score);
+        let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, tmp_prune);
         
-        if tmp_score >= beta {
-            return beta;
+        if tmp_score >= prune.beta {
+            return prune.beta;
         }
-        alpha = cmp::max(alpha, tmp_score);
+        prune.alpha = cmp::max(prune.alpha, tmp_score);
     }
 
-    alpha
+    prune.alpha
 }
 
 fn move_points(movement: &Movement) -> i32 {
