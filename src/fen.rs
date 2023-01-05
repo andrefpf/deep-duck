@@ -82,7 +82,8 @@ fn _pieces_decode(board: &mut Board, notation_part: &str) {
             },
             
             _ => {
-                let square = Square{pos:Position(x, 7-y), piece:Some(fen_to_piece(c))};
+                let pos = Position(x, 7-y);
+                let square = Square{pos, piece:Some(fen_to_piece(c, pos))};
                 board.set_square(square);
                 x = x + 1;
             }
@@ -169,21 +170,21 @@ fn piece_to_fen(piece: &Piece) -> char {
     }    
 }
 
-fn fen_to_piece(notation: char) -> Piece {
+fn fen_to_piece(notation: char, pos: Position) -> Piece {
     match notation {
-        'r' => Piece{color:Color::Black, kind:PieceKind::Rook},
-        'n' => Piece{color:Color::Black, kind:PieceKind::Knight},
-        'b' => Piece{color:Color::Black, kind:PieceKind::Bishop},
-        'q' => Piece{color:Color::Black, kind:PieceKind::Queen},
-        'k' => Piece{color:Color::Black, kind:PieceKind::King},
-        'p' => Piece{color:Color::Black, kind:PieceKind::Pawn},
+        'r' => Piece{pos, color:Color::Black, kind:PieceKind::Rook},
+        'n' => Piece{pos, color:Color::Black, kind:PieceKind::Knight},
+        'b' => Piece{pos, color:Color::Black, kind:PieceKind::Bishop},
+        'q' => Piece{pos, color:Color::Black, kind:PieceKind::Queen},
+        'k' => Piece{pos, color:Color::Black, kind:PieceKind::King},
+        'p' => Piece{pos, color:Color::Black, kind:PieceKind::Pawn},
 
-        'R' => Piece{color:Color::White, kind:PieceKind::Rook},
-        'N' => Piece{color:Color::White, kind:PieceKind::Knight},
-        'B' => Piece{color:Color::White, kind:PieceKind::Bishop},
-        'Q' => Piece{color:Color::White, kind:PieceKind::Queen},
-        'K' => Piece{color:Color::White, kind:PieceKind::King},
-        'P' => Piece{color:Color::White, kind:PieceKind::Pawn},
+        'R' => Piece{pos, color:Color::White, kind:PieceKind::Rook},
+        'N' => Piece{pos, color:Color::White, kind:PieceKind::Knight},
+        'B' => Piece{pos, color:Color::White, kind:PieceKind::Bishop},
+        'Q' => Piece{pos, color:Color::White, kind:PieceKind::Queen},
+        'K' => Piece{pos, color:Color::White, kind:PieceKind::King},
+        'P' => Piece{pos, color:Color::White, kind:PieceKind::Pawn},
 
         _ => panic!("Unkown fen piece"),
     }

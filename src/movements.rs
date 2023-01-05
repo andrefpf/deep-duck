@@ -155,8 +155,8 @@ impl Movement {
         let promotion: i32;
 
         match board.get_square(origin.0 as usize, origin.1 as usize).piece {
-            Some(Piece{color:Color::White, kind:_}) => {direction = 1; promotion = 7},
-            Some(Piece{color:Color::Black, kind:_}) => {direction = -1; promotion = 0},
+            Some(Piece{pos:_, color:Color::White, kind:_}) => {direction = 1; promotion = 7},
+            Some(Piece{pos:_, color:Color::Black, kind:_}) => {direction = -1; promotion = 0},
             None => return movements,
         }
 

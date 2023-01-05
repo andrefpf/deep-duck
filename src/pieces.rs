@@ -6,6 +6,7 @@ pub enum Color {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Piece {
+    pub pos: Position,
     pub color: Color,
     pub kind: PieceKind,
 }
