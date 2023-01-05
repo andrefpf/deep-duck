@@ -3,6 +3,7 @@ use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
+use crate::pieces::PieceKind;
 use crate::fen;
 
 #[derive(Clone)]

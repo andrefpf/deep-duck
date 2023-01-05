@@ -7,15 +7,14 @@ use crate::movements::Movement;
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
     let mut best_score = -i32::MAX;
-    let mut tmp_score: i32;
-    let mut tmp_board: Board;
 
     let avaliable_moves = Movement::avaliable_moves(board);
-    let mut evaluated = 0;
-
+    let current_score = count_material(board);
+    
     for movement in avaliable_moves {
-        tmp_board = board.copy_and_move(movement.origin, movement.target);
-        tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, i32::MAX, &mut evaluated);
+        let current_score = current_score + move_points(&movement);
+        let tmp_board = board.copy_and_move(movement.origin, movement.target);
+        let tmp_score = -evaluate_recursive(&tmp_board, depth-1, -i32::MAX, i32::MAX, -current_score);
 
         if best_score < tmp_score {
             best_score = tmp_score;
@@ -23,41 +22,37 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
         }
     }
 
-    println!("Nodes evaluated depth {depth}: {evaluated}");
-
     best_movement
 }
 
 pub fn evaluate(board: &Board, depth: usize) -> i32 {
-    // evaluate_recursive(board, depth, -i32::MAX, i32::MAX)
-    0
+    let current_score = count_material(board);
+    evaluate_recursive(board, depth, -i32::MAX, i32::MAX, current_score)
 }
 
 fn evaluate_static(board: &Board) -> i32 {
     count_material(board)
 }
 
-fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32, evaluated: &mut usize) -> i32 {
+fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32, current_score: i32) -> i32 {
     if depth == 0 {
-        return evaluate_static(board);
+        return current_score;
+        // return evaluate_static(board);
     }
     
     let mut alpha = alpha;
-    let mut tmp_score: i32;
-    let mut tmp_board: Board;
-
     let mut avaliable_moves = Movement::avaliable_moves(board);
+    
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     if avaliable_moves.len() == 0 {
         return evaluate_static(board);
     }
 
-    *evaluated += avaliable_moves.len();
-
-    for mv in avaliable_moves {
-        tmp_board = board.copy_and_move(mv.origin, mv.target);
-        tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -i32::MAX, i32::MAX, evaluated);
+    for movement in avaliable_moves {
+        let current_score = current_score + move_points(&movement);
+        let tmp_board = board.copy_and_move(movement.origin, movement.target);
+        let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, -i32::MAX, i32::MAX, -current_score);
         
         if tmp_score >= beta {
             return beta;
@@ -66,6 +61,21 @@ fn evaluate_recursive(board: &Board, depth: usize, alpha: i32, beta: i32, evalua
     }
 
     alpha
+}
+
+fn move_points(movement: &Movement) -> i32 {
+    let mut score = 0;
+
+    if let Some(captured) = movement.captured {
+        score += piece_value(captured);
+    }
+
+    if let Some(promotion) = movement.promotion {
+        score -= piece_value(PieceKind::Pawn);
+        score += piece_value(promotion);
+    }
+
+    score
 }
 
 fn estimate_movement(movement: &Movement) -> i32 {
