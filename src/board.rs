@@ -57,15 +57,11 @@ impl Board {
     pub fn ocuppied_squares(&self) -> Vec::<Piece> {
         let mut squares = Vec::<Piece>::with_capacity(32);
 
-        for i in 0..8 {
-            for j in 0..8 {
-                let pos = Position(i, j);
-                let square = self.get_square(pos);
-                if let Some(piece) = square {
-                    squares.push(piece);
-                }
+        for square in self.data {
+            if let Some(piece) = square {
+                squares.push(piece);
             }
-        }        
+        }
         
         squares
     }
