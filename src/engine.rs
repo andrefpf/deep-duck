@@ -12,7 +12,7 @@ struct Prune {
 
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
-    let mut avaliable_moves = Movement::avaliable_moves(board);
+    let mut avaliable_moves = Movement::avaliable_moves(board, false);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     let mut prune = Prune {
@@ -55,14 +55,14 @@ fn evaluate_static(board: &Board) -> i32 {
 
 fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
     if depth == 0 {
-        return evaluate_static(board);
+        return evaluate_critic(board, 5, prune);
     }
     
-    let mut avaliable_moves = Movement::avaliable_moves(board);
+    let mut avaliable_moves = Movement::avaliable_moves(board, false);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
     
     if avaliable_moves.len() == 0 {
-        return evaluate_static(board);
+        return evaluate_critic(board, 5, prune);
     }
     
     let mut prune = prune;
@@ -87,13 +87,14 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
     prune.alpha
 }
 
-fn quiescence(board: &Board, prune: Prune) -> i32 {
-    let avaliable_moves: Vec<Movement> = Movement::avaliable_moves(board)
-                                            .iter()
-                                            .filter(|&x| x.captured.is_some())
-                                            .copied()
-                                            .collect();
-        
+fn evaluate_critic(board: &Board, depth: usize, prune: Prune) -> i32 {
+    if depth == 0 {
+        return evaluate_static(board);
+    }
+    
+    let mut avaliable_moves = Movement::avaliable_moves(board, true);
+    avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
+    
     if avaliable_moves.len() == 0 {
         return evaluate_static(board);
     }
@@ -106,15 +107,15 @@ fn quiescence(board: &Board, prune: Prune) -> i32 {
             beta: -prune.alpha, 
         };
         let tmp_board = board.copy_movement(movement);
-        let tmp_score = -quiescence(&tmp_board, tmp_prune);
+        let tmp_score = -evaluate_critic(&tmp_board, depth - 1, tmp_prune);
         
         if tmp_score >= prune.beta {
             return prune.beta;
         }
 
-        // if tmp_score + 900 < prune.alpha {
-        //     return prune.alpha;
-        // }
+        if tmp_score + 200 < prune.alpha {
+            return prune.alpha;
+        }
 
         if tmp_score > prune.alpha {
             prune.alpha = tmp_score;

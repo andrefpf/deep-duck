@@ -10,10 +10,10 @@ use std::time::Instant;
 
 
 fn example() {
-    let mut board = Board::from_fen("r3k2r/p1ppqpb1/Bn2pnp1/3PN3/1p2P3/2N4p/PPPB1PPP/R3K2R b - - 0 1");
+    let mut board = Board::from_fen("2r1q3/pb4pk/1pn1p1Np/3pP3/3P4/2P5/P1Q3PP/5RK1 w - - 0 23");
     println!("{:?} \n", board);
     
-    let best_move = search(&board, 6);
+    let best_move = search(&board, 5);
     if let Some(best_move) = best_move {
         board.make_movement(best_move);
         println!("{:?}", best_move);
