@@ -3,6 +3,7 @@ use crate::board::Board;
 use crate::pieces::PieceKind;
 use crate::pieces::Piece;
 use crate::movements::Movement;
+use crate::movements::DuckMovement;
 
 #[derive(Copy, Clone, Debug)]
 struct Prune {
@@ -10,9 +11,9 @@ struct Prune {
     beta: i32,
 }
 
-pub fn search(board: &Board, depth: usize) -> Option<Movement> {
-    let mut best_movement: Option<Movement> = None;
-    let mut avaliable_moves = Movement::avaliable_moves(board, false);
+pub fn search(board: &Board, depth: usize) -> Option<DuckMovement> {
+    let mut best_movement: Option<DuckMovement> = None;
+    let mut avaliable_moves = DuckMovement::avaliable_moves(board);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     let mut prune = Prune {
@@ -25,7 +26,7 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_movement(movement);
+        let tmp_board = board.copy_duck_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth-1, tmp_prune);
 
         if tmp_score >= prune.beta {
@@ -55,14 +56,14 @@ fn evaluate_static(board: &Board) -> i32 {
 
 fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
     if depth == 0 {
-        return evaluate_critic(board, 5, prune);
+        return evaluate_static(board);
     }
     
-    let mut avaliable_moves = Movement::avaliable_moves(board, false);
+    let mut avaliable_moves = DuckMovement::avaliable_moves(board);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
     
     if avaliable_moves.len() == 0 {
-        return evaluate_critic(board, 5, prune);
+        return evaluate_static(board);
     }
     
     let mut prune = prune;
@@ -72,7 +73,7 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_movement(movement);
+        let tmp_board = board.copy_duck_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, tmp_prune);
         
         if tmp_score >= prune.beta {
@@ -87,45 +88,45 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
     prune.alpha
 }
 
-fn evaluate_critic(board: &Board, depth: usize, prune: Prune) -> i32 {
-    if depth == 0 {
-        return evaluate_static(board);
-    }
+// fn evaluate_critic(board: &Board, depth: usize, prune: Prune) -> i32 {
+//     if depth == 0 {
+//         return evaluate_static(board);
+//     }
     
-    let mut avaliable_moves = Movement::avaliable_moves(board, true);
-    avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
+//     let mut avaliable_moves = Movement::avaliable_moves(board, true);
+//     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
     
-    if avaliable_moves.len() == 0 {
-        return evaluate_static(board);
-    }
+//     if avaliable_moves.len() == 0 {
+//         return evaluate_static(board);
+//     }
     
-    let mut prune = prune;
+//     let mut prune = prune;
 
-    for movement in avaliable_moves {
-        let tmp_prune = Prune{
-            alpha: -prune.beta, 
-            beta: -prune.alpha, 
-        };
-        let tmp_board = board.copy_movement(movement);
-        let tmp_score = -evaluate_critic(&tmp_board, depth - 1, tmp_prune);
+//     for movement in avaliable_moves {
+//         let tmp_prune = Prune{
+//             alpha: -prune.beta, 
+//             beta: -prune.alpha, 
+//         };
+//         let tmp_board = board.copy_movement(movement);
+//         let tmp_score = -evaluate_critic(&tmp_board, depth - 1, tmp_prune);
         
-        if tmp_score >= prune.beta {
-            return prune.beta;
-        }
+//         if tmp_score >= prune.beta {
+//             return prune.beta;
+//         }
 
-        if tmp_score + 200 < prune.alpha {
-            return prune.alpha;
-        }
+//         if tmp_score + 200 < prune.alpha {
+//             return prune.alpha;
+//         }
 
-        if tmp_score > prune.alpha {
-            prune.alpha = tmp_score;
-        }
-    }
+//         if tmp_score > prune.alpha {
+//             prune.alpha = tmp_score;
+//         }
+//     }
 
-    prune.alpha
-}
+//     prune.alpha
+// }
 
-fn estimate_movement(movement: &Movement) -> i32 {
+fn estimate_movement(movement: &DuckMovement) -> i32 {
     let mut score = 0;
 
     score -= piece_value(movement.moved);

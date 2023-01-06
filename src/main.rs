@@ -10,12 +10,12 @@ use std::time::Instant;
 
 
 fn example() {
-    let mut board = Board::from_fen("2r1q3/pb4pk/1pn1p1Np/3pP3/3P4/2P5/P1Q3PP/5RK1 w - - 0 23");
+    let mut board = Board::from_fen("k7/8/8/2K5/8/8/8/8 w - - 0 1");
     println!("{:?} \n", board);
     
-    let best_move = search(&board, 5);
+    let best_move = search(&board, 3);
     if let Some(best_move) = best_move {
-        board.make_movement(best_move);
+        board.make_duck_movement(best_move);
         println!("{:?}", best_move);
         println!("{:?}", board);
     }

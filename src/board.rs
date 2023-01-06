@@ -121,12 +121,7 @@ impl Board {
     
     pub fn make_movement(&mut self, movement: Movement) {
         self.move_piece(movement.origin, movement.target);
-        
-        self.active_color = match self.active_color {
-            Color::White => Color::Black,
-            Color::Black => Color::White,
-            Color::Yellow => panic!("Invalid active color"),
-        };
+        self.update_color();
 
         if let Some(kind) = movement.promotion {
             if let Some(mut piece) = self.get_square(movement.target) {
@@ -137,22 +132,9 @@ impl Board {
     }
 
     pub fn make_duck_movement(&mut self, movement: DuckMovement) {
-        if let Some(duck_origin) = self.duck_position() {
-            self.move_piece(duck_origin, movement.duck)
-        } else {
-            let piece = Piece {
-                pos:movement.duck, 
-                color:Color::Yellow, 
-                kind:PieceKind::Duck,
-            };
-            self.set_square(movement.duck, Some(piece));
-        }
-
-        self.active_color = match self.active_color {
-            Color::White => Color::Black,
-            Color::Black => Color::White,
-            Color::Yellow => panic!("Invalid active color"),
-        };
+        self.move_piece(movement.origin, movement.target);
+        self.place_duck(movement.duck);
+        self.update_color();
 
         if let Some(kind) = movement.promotion {
             if let Some(mut piece) = self.get_square(movement.target) {
@@ -182,6 +164,27 @@ impl Board {
     
     pub fn to_fen(&self) -> String {
         fen::board_to_fen(self)
+    }
+
+    fn place_duck(&mut self, position: Position) {
+        if let Some(duck_origin) = self.duck_position() {
+            self.move_piece(duck_origin, position)
+        } else {
+            let piece = Piece {
+                pos:position, 
+                color:Color::Yellow, 
+                kind:PieceKind::Duck,
+            };
+            self.set_square(position, Some(piece));
+        }
+    }
+
+    fn update_color(&mut self) {
+        self.active_color = match self.active_color {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+            Color::Yellow => panic!("Invalid active color"),
+        };
     }
 }
 

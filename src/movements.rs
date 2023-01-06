@@ -13,6 +13,7 @@ pub struct Movement {
     pub promotion: Option<PieceKind>
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct DuckMovement {
     pub origin: Position,
     pub target: Position,
@@ -36,8 +37,9 @@ enum MovementDirection {
 impl DuckMovement {
     pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
         let mut movements = Vec::<Self>::with_capacity(140);
+        let duck_square = board.duck_position();
 
-        for movement in Movement::avaliable_moves(board, true) {
+        for movement in Movement::avaliable_moves(board, false) {
             for position in board.empty_positions() {
                 if position == movement.target {
                     continue;
@@ -90,10 +92,15 @@ impl Movement {
             None => None
         };
 
-        // you cant capture your own pieces
         if let Some(target_piece) = target_square {
+            // you cant capture your own pieces
             if origin_piece.color == target_piece.color {
                 return None;
+            }
+
+            // you cant capture the duck
+            if let Color::Yellow = target_piece.color {
+                return None
             }
         }
 
