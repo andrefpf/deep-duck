@@ -15,11 +15,11 @@ fn example() {
     
     let best_move = search(&board, 6);
     if let Some(best_move) = best_move {
-        board.make_move(best_move.origin, best_move.target);
+        board.make_movement(best_move);
         println!("{:?}", best_move);
         println!("{:?}", board);
     }
-    
+        
     println!("{}", board.to_fen());
 }
 

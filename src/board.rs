@@ -87,8 +87,8 @@ impl Board {
         assert!(index >= 0);
         self.data[index as usize] = target_square;
     }
-    
-    pub fn make_move(&mut self, origin: Position, target: Position) {
+
+    pub fn move_piece(&mut self, origin: Position, target: Position) {
         let square = self.get_square(origin);
         self.move_counter = self.move_counter + 1;
 
@@ -100,10 +100,27 @@ impl Board {
         self.set_square(origin, None);
         self.set_square(target, square);
     }
+    
+    pub fn make_movement(&mut self, movement: Movement) {
+        self.move_piece(movement.origin, movement.target);
+
+        if let Some(kind) = movement.promotion {
+            if let Some(mut piece) = self.get_square(movement.target) {
+                piece.kind = kind;
+                self.set_square(movement.target, Some(piece));
+            }
+        }
+    }
 
     pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
         let mut board = self.clone();
-        board.make_move(origin, target);
+        board.move_piece(origin, target);
+        board
+    }
+
+    pub fn copy_movement(&self, movement: Movement) -> Self {
+        let mut board = self.clone();
+        board.make_movement(movement);
         board
     }
     

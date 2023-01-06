@@ -12,7 +12,8 @@ struct Prune {
 
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut best_movement: Option<Movement> = None;
-    let avaliable_moves = Movement::avaliable_moves(board);
+    let mut avaliable_moves = Movement::avaliable_moves(board);
+    avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     let mut prune = Prune {
         alpha: -i32::MAX,
@@ -24,10 +25,14 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_and_move(movement.origin, movement.target);
+        let tmp_board = board.copy_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth-1, tmp_prune);
 
-        if prune.alpha < tmp_score {
+        if tmp_score >= prune.beta {
+            return best_movement;
+        }
+
+        if tmp_score > prune.alpha {
             prune.alpha = tmp_score;
             best_movement = Some(movement);
         }
@@ -67,13 +72,53 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_and_move(movement.origin, movement.target);
+        let tmp_board = board.copy_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, tmp_prune);
         
         if tmp_score >= prune.beta {
             return prune.beta;
         }
-        prune.alpha = cmp::max(prune.alpha, tmp_score);
+
+        if tmp_score > prune.alpha {
+            prune.alpha = tmp_score;
+        }
+    }
+
+    prune.alpha
+}
+
+fn quiescence(board: &Board, prune: Prune) -> i32 {
+    let avaliable_moves: Vec<Movement> = Movement::avaliable_moves(board)
+                                            .iter()
+                                            .filter(|&x| x.captured.is_some())
+                                            .copied()
+                                            .collect();
+        
+    if avaliable_moves.len() == 0 {
+        return evaluate_static(board);
+    }
+    
+    let mut prune = prune;
+
+    for movement in avaliable_moves {
+        let tmp_prune = Prune{
+            alpha: -prune.beta, 
+            beta: -prune.alpha, 
+        };
+        let tmp_board = board.copy_movement(movement);
+        let tmp_score = -quiescence(&tmp_board, tmp_prune);
+        
+        if tmp_score >= prune.beta {
+            return prune.beta;
+        }
+
+        // if tmp_score + 900 < prune.alpha {
+        //     return prune.alpha;
+        // }
+
+        if tmp_score > prune.alpha {
+            prune.alpha = tmp_score;
+        }
     }
 
     prune.alpha
@@ -82,12 +127,14 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
 fn estimate_movement(movement: &Movement) -> i32 {
     let mut score = 0;
 
+    score -= piece_value(movement.moved);
+
     if let Some(captured) = movement.captured {
-        score += piece_value(captured);
+        score += 10 * piece_value(captured);
     }
 
     if let Some(promotion) = movement.promotion {
-        score += 2 * piece_value(promotion);
+        score += 20 * piece_value(promotion);
     }
 
     score
@@ -140,7 +187,7 @@ mod tests {
     #[test]
     fn test_forks() {
         let board = Board::from_fen("4k3/8/4r3/2KN4/8/8/8/8 w - - 0 1");
-        let best_move = search(&board, 3);
+        let best_move = search(&board, 4);
 
         if let None = best_move {
             panic!("No moves found");
