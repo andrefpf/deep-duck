@@ -3,6 +3,7 @@ use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
+use crate::movements::DuckMovement;
 use crate::pieces::PieceKind;
 use crate::fen;
 
@@ -114,19 +115,44 @@ impl Board {
     pub fn move_piece(&mut self, origin: Position, target: Position) {
         let square = self.get_square(origin);
         self.move_counter = self.move_counter + 1;
-
-        self.active_color = match self.active_color {
-            Color::White => Color::Black,
-            Color::Black => Color::White,
-            Color::Yellow => panic!("Invalid active color"),
-        };
-    
         self.set_square(origin, None);
         self.set_square(target, square);
     }
     
     pub fn make_movement(&mut self, movement: Movement) {
         self.move_piece(movement.origin, movement.target);
+        
+        self.active_color = match self.active_color {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+            Color::Yellow => panic!("Invalid active color"),
+        };
+
+        if let Some(kind) = movement.promotion {
+            if let Some(mut piece) = self.get_square(movement.target) {
+                piece.kind = kind;
+                self.set_square(movement.target, Some(piece));
+            }
+        }
+    }
+
+    pub fn make_duck_movement(&mut self, movement: DuckMovement) {
+        if let Some(duck_origin) = self.duck_position() {
+            self.move_piece(duck_origin, movement.duck)
+        } else {
+            let piece = Piece {
+                pos:movement.duck, 
+                color:Color::Yellow, 
+                kind:PieceKind::Duck,
+            };
+            self.set_square(movement.duck, Some(piece));
+        }
+
+        self.active_color = match self.active_color {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+            Color::Yellow => panic!("Invalid active color"),
+        };
 
         if let Some(kind) = movement.promotion {
             if let Some(mut piece) = self.get_square(movement.target) {
@@ -145,6 +171,12 @@ impl Board {
     pub fn copy_movement(&self, movement: Movement) -> Self {
         let mut board = self.clone();
         board.make_movement(movement);
+        board
+    }
+
+    pub fn copy_duck_movement(&self, movement: DuckMovement) -> Self {
+        let mut board = self.clone();
+        board.make_duck_movement(movement);
         board
     }
     

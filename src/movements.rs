@@ -34,10 +34,6 @@ enum MovementDirection {
 }
 
 impl DuckMovement {
-    pub fn from_coords(board: &Board, start: (i32, i32), end: (i32, i32)) -> Option<Self> {
-        None
-    }
-
     pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
         let mut movements = Vec::<Self>::with_capacity(140);
 
