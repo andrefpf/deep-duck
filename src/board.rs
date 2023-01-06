@@ -66,6 +66,33 @@ impl Board {
         squares
     }
 
+    pub fn empty_positions(&self) -> Vec<Position> {
+        let mut squares = Vec::<Position>::with_capacity(64);
+
+        for i in 0..8 {
+            for j in 0..8 {
+                let pos = Position(i, j);
+                if self.get_square(pos).is_none() {
+                    squares.push(pos)
+                }
+            }
+        }
+
+        squares
+    }
+
+    pub fn duck_position(&self) -> Option<Position> {
+        for square in self.data {
+            if let Some(piece) = square {
+                if let PieceKind::Duck = piece.kind {
+                    return Some(piece.pos);
+                }
+            }
+        }
+        
+        None
+    }
+
     pub fn get_square(&self, pos: Position) -> Option<Piece> {
         let index = pos.0 + 8 * pos.1;
         self.data[index as usize]
