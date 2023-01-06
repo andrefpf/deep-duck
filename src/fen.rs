@@ -96,6 +96,7 @@ fn _color_encode(board: &Board) -> String {
     match board.active_color {
         Color::White => String::from("w"),
         Color::Black => String::from("b"),
+        Color::Yellow => panic!("invalid movement"),
     }
 }
 
@@ -168,6 +169,9 @@ fn piece_to_fen(piece: &Piece) -> char {
         (Color::White, PieceKind::Queen) => 'Q',
         (Color::White, PieceKind::King) => 'K',
         (Color::White, PieceKind::Pawn) => 'P',
+
+        (Color::Yellow, PieceKind::Duck) => 'D',
+        _ => panic!("invalid piece"),
     }    
 }
 
@@ -187,6 +191,7 @@ fn fen_to_piece(notation: char, pos: Position) -> Piece {
         'K' => Piece{pos, color:Color::White, kind:PieceKind::King},
         'P' => Piece{pos, color:Color::White, kind:PieceKind::Pawn},
 
+        'D' => Piece{pos, color:Color::Yellow, kind:PieceKind::Duck},
         _ => panic!("Unkown fen piece"),
     }
 }

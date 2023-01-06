@@ -162,6 +162,7 @@ fn piece_value(piece_kind: PieceKind) -> i32 {
         PieceKind::Rook => 500,
         PieceKind::Queen => 900,
         PieceKind::King => 1_000_000,
+        PieceKind::Duck => 0,
     }
 }
 

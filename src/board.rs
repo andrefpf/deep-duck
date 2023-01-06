@@ -95,6 +95,7 @@ impl Board {
         self.active_color = match self.active_color {
             Color::White => Color::Black,
             Color::Black => Color::White,
+            Color::Yellow => panic!("Invalid active color"),
         };
     
         self.set_square(origin, None);

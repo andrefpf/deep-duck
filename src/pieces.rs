@@ -2,6 +2,7 @@
 pub enum Color {
     White,
     Black,
+    Yellow,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -19,6 +20,7 @@ pub enum PieceKind {
     Bishop,
     Queen,
     King,
+    Duck,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -40,6 +42,9 @@ impl Piece {
             (Color::White, PieceKind::Queen) => '♛',
             (Color::White, PieceKind::King) => '♚',
             (Color::White, PieceKind::Pawn) => '♟',
+
+            (Color::Yellow, PieceKind::Duck) => '☢',
+            _ => panic!("Invalid piece."),
         }
     }
 }

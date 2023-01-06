@@ -101,6 +101,7 @@ impl Movement {
             PieceKind::King => Self::king_moves(board, origin),
             PieceKind::Knight => Self::knight_moves(board, origin),
             PieceKind::Pawn => Self::pawn_moves(board, origin),
+            PieceKind::Duck => Vec::<Self>::new(),
         }
     }
 
@@ -156,9 +157,9 @@ impl Movement {
         let promotion: i32;
 
         match board.get_square(origin) {
-            Some(Piece{pos:_, color:Color::White, kind:_}) => {direction = 1; promotion = 7},
-            Some(Piece{pos:_, color:Color::Black, kind:_}) => {direction = -1; promotion = 0},
-            None => return movements,
+            Some(Piece{pos:_, color:Color::White, kind:PieceKind::Pawn}) => {direction = 1; promotion = 7},
+            Some(Piece{pos:_, color:Color::Black, kind:PieceKind::Pawn}) => {direction = -1; promotion = 0},
+            _ => return movements,
         }
 
         let Position(x, y) = origin;
