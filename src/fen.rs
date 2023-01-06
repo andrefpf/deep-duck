@@ -170,7 +170,7 @@ fn piece_to_fen(piece: &Piece) -> char {
         (Color::White, PieceKind::King) => 'K',
         (Color::White, PieceKind::Pawn) => 'P',
 
-        (Color::Yellow, PieceKind::Duck) => 'D',
+        (Color::Yellow, PieceKind::Duck) => '*',
         _ => panic!("invalid piece"),
     }    
 }
@@ -191,7 +191,7 @@ fn fen_to_piece(notation: char, pos: Position) -> Piece {
         'K' => Piece{pos, color:Color::White, kind:PieceKind::King},
         'P' => Piece{pos, color:Color::White, kind:PieceKind::Pawn},
 
-        'D' => Piece{pos, color:Color::Yellow, kind:PieceKind::Duck},
+        '*' => Piece{pos, color:Color::Yellow, kind:PieceKind::Duck},
         _ => panic!("Unkown fen piece"),
     }
 }
