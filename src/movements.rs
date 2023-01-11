@@ -35,6 +35,17 @@ enum MovementDirection {
 }
 
 impl DuckMovement {
+    pub fn from_movement(movement: Movement) -> DuckMovement {
+        DuckMovement{
+            origin: movement.origin,
+            target: movement.target,
+            duck: movement.origin,
+            moved: movement.moved,
+            captured: movement.captured,
+            promotion: movement.promotion,
+        }
+    }
+
     pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
         let mut movements = Vec::<Self>::with_capacity(140);
         let duck_square = board.duck_position();

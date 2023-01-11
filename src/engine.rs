@@ -1,6 +1,7 @@
 use std::cmp;
 use crate::board::Board;
 use crate::pieces::PieceKind;
+use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::movements::Movement;
 use crate::movements::DuckMovement;
@@ -9,6 +10,11 @@ use crate::movements::DuckMovement;
 struct Prune {
     alpha: i32,
     beta: i32,
+}
+
+struct Evaluation {
+    movement: DuckMovement,
+    score: i32,
 }
 
 pub fn search(board: &Board, depth: usize) -> Option<DuckMovement> {
@@ -168,6 +174,41 @@ fn piece_value(piece_kind: PieceKind) -> i32 {
     }
 }
 
+fn intercept(movement: &DuckMovement) -> Option<Position> {
+    // let duck = Position(0, 0);
+
+    let duck = match movement.moved {
+        PieceKind::Knight | PieceKind::King | PieceKind::Pawn => {
+            intercept_jump(movement)
+        },
+
+        PieceKind::Rook | PieceKind::Bishop | PieceKind::Queen => {
+            None
+        },
+        
+        PieceKind::Duck => {
+            None
+        },
+    };
+
+
+
+    duck
+}
+
+fn intercept_jump(movement: &DuckMovement) -> Option<Position> {
+    if movement.captured.is_none() {
+        Some(movement.target)
+    } else {
+        None
+    }
+}
+
+fn intercept_slide(movement: &DuckMovement) -> Option<Position> {
+    None
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,5 +240,28 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(3, 4));
         assert_eq!(best_move.target, Position(2, 6));
+    }
+
+    #[test]
+    fn test_interception() {
+        let mut board = Board::from_fen("8/8/8/8/8/8/5K1k/7N w - - 0 1");
+        let movement = Movement::piece_moves(&board, Position(7, 0), false).pop();
+
+        let duck_movement: DuckMovement;
+        if let Some(valid_movement) = movement {
+            duck_movement = DuckMovement::from_movement(valid_movement);
+        } else {
+            return;
+        }
+
+        println!("{:?}", board);
+
+        if let Some(interception) = intercept(&duck_movement) {
+            board.place_duck(interception);
+        } else {
+            board.make_movement(movement.unwrap());
+        }
+
+        println!("{:?}", board);
     }
 }

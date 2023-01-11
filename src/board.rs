@@ -166,7 +166,7 @@ impl Board {
         fen::board_to_fen(self)
     }
 
-    fn place_duck(&mut self, position: Position) {
+    pub fn place_duck(&mut self, position: Position) {
         if let Some(duck_origin) = self.duck_position() {
             self.move_piece(duck_origin, position)
         } else {
