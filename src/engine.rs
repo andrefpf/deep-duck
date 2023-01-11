@@ -4,7 +4,6 @@ use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::movements::Movement;
-use crate::movements::DuckMovement;
 
 #[derive(Copy, Clone, Debug)]
 struct Prune {
@@ -13,13 +12,13 @@ struct Prune {
 }
 
 struct Evaluation {
-    movement: DuckMovement,
+    movement: Movement,
     score: i32,
 }
 
-pub fn search(board: &Board, depth: usize) -> Option<DuckMovement> {
-    let mut best_movement: Option<DuckMovement> = None;
-    let mut avaliable_moves = DuckMovement::avaliable_moves(board);
+pub fn search(board: &Board, depth: usize) -> Option<Movement> {
+    let mut best_movement: Option<Movement> = None;
+    let mut avaliable_moves = Movement::avaliable_moves(board, false);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
 
     let mut prune = Prune {
@@ -32,7 +31,7 @@ pub fn search(board: &Board, depth: usize) -> Option<DuckMovement> {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_duck_movement(movement);
+        let tmp_board = board.copy_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth-1, tmp_prune);
 
         if tmp_score >= prune.beta {
@@ -65,7 +64,7 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
         return evaluate_static(board);
     }
     
-    let mut avaliable_moves = DuckMovement::avaliable_moves(board);
+    let mut avaliable_moves = Movement::avaliable_moves(board, false);
     avaliable_moves.sort_by_cached_key(|x| -estimate_movement(&x));
     
     if avaliable_moves.len() == 0 {
@@ -79,7 +78,7 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
             alpha: -prune.beta, 
             beta: -prune.alpha, 
         };
-        let tmp_board = board.copy_duck_movement(movement);
+        let tmp_board = board.copy_movement(movement);
         let tmp_score = -evaluate_recursive(&tmp_board, depth - 1, tmp_prune);
         
         if tmp_score >= prune.beta {
@@ -132,7 +131,7 @@ fn evaluate_recursive(board: &Board, depth: usize, prune: Prune) -> i32 {
 //     prune.alpha
 // }
 
-fn estimate_movement(movement: &DuckMovement) -> i32 {
+fn estimate_movement(movement: &Movement) -> i32 {
     let mut score = 0;
 
     score -= piece_value(movement.moved);
@@ -174,7 +173,7 @@ fn piece_value(piece_kind: PieceKind) -> i32 {
     }
 }
 
-fn intercept(movement: &DuckMovement) -> Option<Position> {
+fn intercept(movement: &Movement) -> Option<Position> {
     // let duck = Position(0, 0);
 
     let duck = match movement.moved {
@@ -196,7 +195,7 @@ fn intercept(movement: &DuckMovement) -> Option<Position> {
     duck
 }
 
-fn intercept_jump(movement: &DuckMovement) -> Option<Position> {
+fn intercept_jump(movement: &Movement) -> Option<Position> {
     if movement.captured.is_none() {
         Some(movement.target)
     } else {
@@ -204,7 +203,7 @@ fn intercept_jump(movement: &DuckMovement) -> Option<Position> {
     }
 }
 
-fn intercept_slide(movement: &DuckMovement) -> Option<Position> {
+fn intercept_slide(movement: &Movement) -> Option<Position> {
     None
 }
 
@@ -245,21 +244,14 @@ mod tests {
     #[test]
     fn test_interception() {
         let mut board = Board::from_fen("8/8/8/8/8/8/5K1k/7N w - - 0 1");
-        let movement = Movement::piece_moves(&board, Position(7, 0), false).pop();
-
-        let duck_movement: DuckMovement;
-        if let Some(valid_movement) = movement {
-            duck_movement = DuckMovement::from_movement(valid_movement);
-        } else {
-            return;
-        }
-
+        let movement = Movement::piece_moves(&board, Position(7, 0), false).pop().unwrap();
+        
         println!("{:?}", board);
 
-        if let Some(interception) = intercept(&duck_movement) {
+        if let Some(interception) = intercept(&movement) {
             board.place_duck(interception);
         } else {
-            board.make_movement(movement.unwrap());
+            board.make_movement(movement);
         }
 
         println!("{:?}", board);

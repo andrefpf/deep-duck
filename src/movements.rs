@@ -8,15 +8,6 @@ use crate::pieces::Color;
 pub struct Movement {
     pub origin: Position,
     pub target: Position,
-    pub moved: PieceKind,
-    pub captured: Option<PieceKind>,
-    pub promotion: Option<PieceKind>
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct DuckMovement {
-    pub origin: Position,
-    pub target: Position,
     pub duck: Position,
     pub moved: PieceKind,
     pub captured: Option<PieceKind>,
@@ -34,55 +25,55 @@ enum MovementDirection {
     BottomRight,
 }
 
-impl DuckMovement {
-    pub fn from_movement(movement: Movement) -> DuckMovement {
-        DuckMovement{
-            origin: movement.origin,
-            target: movement.target,
-            duck: movement.origin,
-            moved: movement.moved,
-            captured: movement.captured,
-            promotion: movement.promotion,
-        }
-    }
+// impl DuckMovement {
+//     pub fn from_movement(movement: Movement) -> DuckMovement {
+//         DuckMovement{
+//             origin: movement.origin,
+//             target: movement.target,
+//             duck: movement.origin,
+//             moved: movement.moved,
+//             captured: movement.captured,
+//             promotion: movement.promotion,
+//         }
+//     }
 
-    pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
-        let mut movements = Vec::<Self>::with_capacity(140);
-        let duck_square = board.duck_position();
+//     pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
+//         let mut movements = Vec::<Self>::with_capacity(140);
+//         let duck_square = board.duck_position();
 
-        for movement in Movement::avaliable_moves(board, false) {
-            for position in board.empty_positions() {
-                if position == movement.target {
-                    continue;
-                }
+//         for movement in Movement::avaliable_moves(board, false) {
+//             for position in board.empty_positions() {
+//                 if position == movement.target {
+//                     continue;
+//                 }
 
-                let duck_movement = DuckMovement {
-                    duck: position,
-                    origin: movement.origin,
-                    target: movement.target,
-                    moved: movement.moved,
-                    captured: movement.captured,
-                    promotion: movement.promotion,
-                };
+//                 let duck_movement = DuckMovement {
+//                     duck: position,
+//                     origin: movement.origin,
+//                     target: movement.target,
+//                     moved: movement.moved,
+//                     captured: movement.captured,
+//                     promotion: movement.promotion,
+//                 };
 
-                movements.push(duck_movement);
-            }
+//                 movements.push(duck_movement);
+//             }
 
-            let duck_movement = DuckMovement {
-                duck: movement.origin,
-                origin: movement.origin,
-                target: movement.target,
-                moved: movement.moved,
-                captured: movement.captured,
-                promotion: movement.promotion,
-            };
+//             let duck_movement = DuckMovement {
+//                 duck: movement.origin,
+//                 origin: movement.origin,
+//                 target: movement.target,
+//                 moved: movement.moved,
+//                 captured: movement.captured,
+//                 promotion: movement.promotion,
+//             };
 
-            movements.push(duck_movement);
-        }
+//             movements.push(duck_movement);
+//         }
 
-        movements
-    }
-}
+//         movements
+//     }
+// }
 
 impl Movement {
     fn from_coords(board: &Board, x0: i32, y0: i32, x1: i32, y1: i32) -> Option<Self> {
@@ -117,8 +108,9 @@ impl Movement {
 
         // TODO: change position values to usize
         let movement = Movement {
-            origin: Position(x0 as i32, y0 as i32),
-            target: Position(x1 as i32, y1 as i32),
+            origin,
+            target,
+            duck: origin,
             moved: origin_piece.kind,
             captured,
             promotion: None,

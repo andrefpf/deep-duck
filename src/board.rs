@@ -3,7 +3,6 @@ use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 use crate::movements::Movement;
-use crate::movements::DuckMovement;
 use crate::pieces::PieceKind;
 use crate::fen;
 
@@ -118,20 +117,8 @@ impl Board {
         self.set_square(origin, None);
         self.set_square(target, square);
     }
-    
+
     pub fn make_movement(&mut self, movement: Movement) {
-        self.move_piece(movement.origin, movement.target);
-        self.update_color();
-
-        if let Some(kind) = movement.promotion {
-            if let Some(mut piece) = self.get_square(movement.target) {
-                piece.kind = kind;
-                self.set_square(movement.target, Some(piece));
-            }
-        }
-    }
-
-    pub fn make_duck_movement(&mut self, movement: DuckMovement) {
         self.move_piece(movement.origin, movement.target);
         self.place_duck(movement.duck);
         self.update_color();
@@ -153,12 +140,6 @@ impl Board {
     pub fn copy_movement(&self, movement: Movement) -> Self {
         let mut board = self.clone();
         board.make_movement(movement);
-        board
-    }
-
-    pub fn copy_duck_movement(&self, movement: DuckMovement) -> Self {
-        let mut board = self.clone();
-        board.make_duck_movement(movement);
         board
     }
     

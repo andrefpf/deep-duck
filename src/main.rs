@@ -15,7 +15,7 @@ fn example() {
     
     let best_move = search(&board, 3);
     if let Some(best_move) = best_move {
-        board.make_duck_movement(best_move);
+        board.make_movement(best_move);
         println!("{:?}", best_move);
         println!("{:?}", board);
     }
