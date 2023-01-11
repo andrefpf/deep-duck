@@ -4,6 +4,7 @@ use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::movements::Movement;
+use crate::evaluation::{count_centipawns, piece_value};
 
 #[derive(Copy, Clone, Debug)]
 struct Prune {
@@ -81,18 +82,16 @@ fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
 fn _evaluate(board: &Board) -> Evaluation {
     Evaluation {
         movement: None,
-        score: count_material(board),
+        score: count_centipawns(board),
     }
-}
-
-fn evaluate_static(board: &Board) -> i32 {
-    count_material(board)
 }
 
 fn estimate_movement(movement: &Movement) -> i32 {
     let mut score = 0;
+    let Position(x, y) = movement.target;
 
     score -= piece_value(movement.moved);
+    score += x*(7-x) + y*(7-y);
 
     if let Some(captured) = movement.captured {
         score += 10 * piece_value(captured);
@@ -103,32 +102,6 @@ fn estimate_movement(movement: &Movement) -> i32 {
     }
 
     score
-}
-
-fn count_material(board: &Board) -> i32 {
-    let mut score: i32 = 0;
-    
-    for piece in board.ocuppied_squares() {            
-        if piece.color == board.active_color {
-            score = score + piece_value(piece.kind);
-        } else {
-            score = score - piece_value(piece.kind);
-        }
-    }
-
-    score
-}
-
-fn piece_value(piece_kind: PieceKind) -> i32 {
-    match piece_kind {
-        PieceKind::Pawn => 100,
-        PieceKind::Bishop => 300,
-        PieceKind::Knight => 300,
-        PieceKind::Rook => 500,
-        PieceKind::Queen => 900,
-        PieceKind::King => 1_000_000,
-        PieceKind::Duck => 0,
-    }
 }
 
 fn intercept(board: &Board, movement: &Movement) -> Option<Position> {
@@ -210,14 +183,16 @@ mod tests {
     
     #[test]
     fn test_forks() {
-        let board = Board::from_fen("4k3/8/4r3/2KN4/8/8/8/8 w - - 0 1");
+        let board = Board::from_fen("4k3/8/4q3/2KN4/8/8/8/8 w - - 0 1");
         let best_move = search(&board, 4);
-
+        println!("{:?}", board);
+        
         if best_move.is_none() {
             panic!("No moves found");
         }
         let best_move = best_move.unwrap();
-
+        println!("{:?}", board);
+        
         assert_eq!(best_move.origin, Position(3, 4));
         assert_eq!(best_move.target, Position(2, 6));
     }

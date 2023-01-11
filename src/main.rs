@@ -3,6 +3,7 @@ mod pieces;
 mod movements;
 mod engine;
 mod fen;
+mod evaluation;
 
 use crate::board::Board;
 use crate::engine::search;
@@ -29,14 +30,17 @@ fn get_input() -> String {
 
 fn cli() {
     loop {
-        print!("Your fen position: ");
+        print!("Your FEN position: ");
         let fen = get_input();
 
+        let start = Instant::now();
         let mut board = Board::from_fen(&fen);
         let best_move = search(&board, 5);
-
+        let duration = start.elapsed();
+        
         if let Some(movement) = best_move {
             println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck);
+            println!("Time elapsed: {:?}", duration);
         } else {
             println!("There are no movements for your position.");
         }
