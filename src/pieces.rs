@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Color {
     White,
@@ -23,7 +25,7 @@ pub enum PieceKind {
     Duck,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Position(pub i32, pub i32);
 
 impl Piece {
@@ -45,6 +47,20 @@ impl Piece {
 
             (Color::Yellow, PieceKind::Duck) => '☢',
             _ => panic!("Invalid piece."),
+        }
+    }
+}
+
+impl fmt::Debug for Position {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let list = "ABCDEFGH";
+        let possible_index = list.chars().nth(self.0 as usize);
+        
+        if let Some(index) = possible_index {
+            let data = format!("{}{}", index, self.1 + 1);
+            write!(f, "{}", data)
+        } else {
+            panic!("Invalid position");
         }
     }
 }
