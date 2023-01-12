@@ -1,8 +1,8 @@
-use std::cmp;
+
 use crate::board::Board;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
-use crate::pieces::Piece;
+
 use crate::movements::Movement;
 use crate::evaluation::{count_centipawns, piece_value};
 

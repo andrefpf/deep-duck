@@ -34,7 +34,7 @@ fn cli() {
         let fen = get_input();
 
         let start = Instant::now();
-        let mut board = Board::from_fen(&fen);
+        let board = Board::from_fen(&fen);
         let best_move = search(&board, 5);
         let duration = start.elapsed();
         
