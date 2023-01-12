@@ -7,10 +7,10 @@ use crate::pieces::Color;
 
 pub fn fen_to_board(notation: &str) -> Board {
     let mut board = Board::new();
-    let mut notation_parts = notation.split(" ");
+    let mut notation_parts = notation.split(' ');
 
-    let pieces_part = notation_parts.nth(0).unwrap();
-    let color_part = notation_parts.nth(0).unwrap();
+    let pieces_part = notation_parts.next().unwrap();
+    let color_part = notation_parts.next().unwrap();
     // let castle_part = notation_parts.nth(0).unwrap();
     // let en_passant_part = notation_parts.nth(0).unwrap();
 
@@ -23,15 +23,14 @@ pub fn fen_to_board(notation: &str) -> Board {
 }
 
 pub fn board_to_fen(board: &Board) -> String {
-    String::from(
-        format!("{} {} {} {} {} {}",
+    format!("{} {} {} {} {} {}",
             _pieces_encode(board),
             _color_encode(board),
             _castle_encode(board),
             _en_passant_encode(board),
             board.move_counter,
             1,
-        ))
+        )
 }
 
 fn _pieces_encode(board: &Board) -> String {
@@ -51,7 +50,7 @@ fn _pieces_encode(board: &Board) -> String {
                     }
                     notation.push(piece_to_fen(&piece));
                 },
-                None => counter = counter + 1,
+                None => counter += 1,
             }
         }
         if counter > 0 {
@@ -74,19 +73,19 @@ fn _pieces_decode(board: &mut Board, notation_part: &str) {
 
             '/' => {
                 x = 0;
-                y = y + 1;
+                y += 1;
             },
 
             '1'..='8' => {
                 let int_c: i32 = c as i32 - 0x30;
-                x = x + int_c;
+                x += int_c;
             },
             
             _ => {
                 let pos = Position(x, 7-y);
                 let square = Some(fen_to_piece(c, pos));
                 board.set_square(pos, square);
-                x = x + 1;
+                x += 1;
             }
         }
     }
@@ -144,7 +143,7 @@ fn _en_passant_encode(board: &Board) -> String {
     if let Some(movement) = board.last_move {
         let indexes = "abcdefgh";
         if let Some(char_index) = indexes.chars().nth(movement.target.0 as usize) {
-            return String::from(format!("{}{}", char_index, movement.target.1 + 1));
+            return format!("{}{}", char_index, movement.target.1 + 1);
         }
     }
 

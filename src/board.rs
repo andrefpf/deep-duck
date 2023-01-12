@@ -51,43 +51,24 @@ impl Board {
     
     #[allow(dead_code)]
     pub fn arranged() -> Self {
-        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        board
+        
+        Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
     pub fn ocuppied_squares(&self) -> Vec::<Piece> {
         let mut squares = Vec::<Piece>::with_capacity(32);
 
-        for square in self.data {
-            if let Some(piece) = square {
-                squares.push(piece);
-            }
+        for piece in self.data.into_iter().flatten() {
+            squares.push(piece);
         }
         
         squares
     }
 
-    pub fn empty_positions(&self) -> Vec<Position> {
-        let mut squares = Vec::<Position>::with_capacity(64);
-
-        for i in 0..8 {
-            for j in 0..8 {
-                let pos = Position(i, j);
-                if self.get_square(pos).is_none() {
-                    squares.push(pos)
-                }
-            }
-        }
-
-        squares
-    }
-
     pub fn duck_position(&self) -> Option<Position> {
-        for square in self.data {
-            if let Some(piece) = square {
-                if let PieceKind::Duck = piece.kind {
-                    return Some(piece.pos);
-                }
+        for piece in self.data.into_iter().flatten() {
+            if let PieceKind::Duck = piece.kind {
+                return Some(piece.pos);
             }
         }
         
@@ -114,7 +95,7 @@ impl Board {
 
     pub fn move_piece(&mut self, origin: Position, target: Position) {
         let square = self.get_square(origin);
-        self.move_counter = self.move_counter + 1;
+        self.move_counter += 1;
         self.set_square(origin, None);
         self.set_square(target, square);
     }

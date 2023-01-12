@@ -89,10 +89,7 @@ impl Movement {
 
         // if we can not unwrap, the movement is invalid anyway
         let origin_piece = origin_square.unwrap();
-        let captured = match target_square {
-            Some(piece) => Some(piece.kind),
-            None => None
-        };
+        let captured = target_square.map(|piece| piece.kind);
 
         if let Some(target_piece) = target_square {
             // you cant capture your own pieces
@@ -207,12 +204,9 @@ impl Movement {
     fn pawn_moves(board: &Board, origin: Position, critic: bool) -> Vec<Self> {
         let mut movements = Vec::<Movement>::new();
         
-        let direction: i32;
-        let promotion: i32;
-
-        match board.get_square(origin) {
-            Some(Piece{pos:_, color:Color::White, kind:PieceKind::Pawn}) => {direction = 1; promotion = 7},
-            Some(Piece{pos:_, color:Color::Black, kind:PieceKind::Pawn}) => {direction = -1; promotion = 0},
+        let (direction, promotion) = match board.get_square(origin) {
+            Some(Piece{pos:_, color:Color::White, kind:PieceKind::Pawn}) => (1, 7),
+            Some(Piece{pos:_, color:Color::Black, kind:PieceKind::Pawn}) => (-1, 0),
             _ => return movements,
         };
 
@@ -271,7 +265,7 @@ impl Movement {
         // let promotions = [PieceKind::Rook, PieceKind::Knight, PieceKind::Bishop, PieceKind::Queen];
 
         for kind in promotions {
-            let mut tmp_movement = movement.clone();
+            let mut tmp_movement = *movement;
             tmp_movement.promotion = Some(kind);
             movements.push(tmp_movement);
         }
@@ -324,7 +318,7 @@ impl Movement {
             let try_movement = Self::from_coords(board, x, y, x + dx, y + dy);
 
             if let Some(movement) = try_movement {
-                if !critic || (movement.captured.is_some() && critic) {
+                if !critic || movement.captured.is_some() {
                     movements.push(movement);
                 }
             }

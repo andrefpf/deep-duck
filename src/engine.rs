@@ -1,8 +1,8 @@
+use std::cmp::Ordering;
 
 use crate::board::Board;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
-
 use crate::movements::Movement;
 use crate::evaluation::{count_centipawns, piece_value};
 
@@ -43,9 +43,9 @@ fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
     let mut best = Evaluation { movement: None, score:  -i32::MAX };
     let mut prune = prune;
     let mut simple_movements = Movement::avaliable_moves(board, false);
-    simple_movements.sort_by_cached_key(|x| -estimate_movement(&x));
+    simple_movements.sort_by_cached_key(|x| -estimate_movement(x));
 
-    if simple_movements.len() == 0 {
+    if simple_movements.is_empty() {
         return _evaluate(board);
     }
 
@@ -152,22 +152,17 @@ fn intercept_jump(movement: &Movement) -> Option<Position> {
 }
 
 fn intercept_slide(board: &Board, movement: &Movement) -> Option<Position> {
-    let mut dx = movement.target.0 - movement.origin.0;
-    let mut dy = movement.target.1 - movement.origin.1;
+    let dx = match (movement.target.0 - movement.origin.0).cmp(&0) {
+        Ordering::Greater => 1,
+        Ordering::Less => -1,
+        Ordering::Equal => 0,
+    };
 
-    if dx > 0 {
-        dx = 1;
-    }
-    else if dx < 0 {
-        dx = -1;
-    }
-
-    if dy > 0 {
-        dy = 1;
-    }
-    else if dy < 0 {
-        dy = -1;
-    }
+    let dy = match (movement.target.1 - movement.origin.1).cmp(&0) {
+        Ordering::Greater => 1,
+        Ordering::Less => -1,
+        Ordering::Equal => 0,
+    };
 
     let pos = Position(movement.origin.0 + dx, movement.origin.1 + dy);
 
