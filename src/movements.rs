@@ -214,7 +214,7 @@ impl Movement {
             Some(Piece{pos:_, color:Color::White, kind:PieceKind::Pawn}) => {direction = 1; promotion = 7},
             Some(Piece{pos:_, color:Color::Black, kind:PieceKind::Pawn}) => {direction = -1; promotion = 0},
             _ => return movements,
-        }
+        };
 
         let Position(x, y) = origin;
 

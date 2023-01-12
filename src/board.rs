@@ -49,6 +49,7 @@ impl Board {
         fen::fen_to_board(notation)
     }
     
+    #[allow(dead_code)]
     pub fn arranged() -> Self {
         let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         board
@@ -131,18 +132,13 @@ impl Board {
         }
     }
 
-    pub fn copy_and_move(&self, origin: Position, target: Position) -> Self {
-        let mut board = self.clone();
-        board.move_piece(origin, target);
-        board
-    }
-
     pub fn copy_movement(&self, movement: Movement) -> Self {
         let mut board = self.clone();
         board.make_movement(movement);
         board
     }
     
+    #[allow(dead_code)]
     pub fn to_fen(&self) -> String {
         fen::board_to_fen(self)
     }
