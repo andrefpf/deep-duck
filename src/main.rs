@@ -38,6 +38,8 @@ fn cli() {
         let best_move = search(&board, 5);
         let duration = start.elapsed();
         
+        println!("{:?}", board);
+
         if let Some(movement) = best_move {
             println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck);
             println!("Time elapsed: {:?}", duration);
