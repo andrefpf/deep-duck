@@ -70,6 +70,18 @@ const KING_TABLE: [i32; 64] = [
  20, 30, 10,  0,  0, 10, 30, 20
 ];
 
+// Should update it
+const DUCK_TABLE: [i32; 64] = [
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+];
+
 pub fn count_centipawns(board: &Board) -> i32 {
     let mut score: i32 = 0;
     
@@ -119,6 +131,6 @@ fn piece_table(piece_kind: PieceKind) -> [i32; 64] {
         PieceKind::Rook => ROOK_TABLE,
         PieceKind::Queen => QUEEN_TABLE,
         PieceKind::King => KING_TABLE,
-        PieceKind::Duck => KNIGHT_TABLE, // seems ok
+        PieceKind::Duck => DUCK_TABLE,
     }
 }

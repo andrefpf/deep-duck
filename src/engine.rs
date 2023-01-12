@@ -54,10 +54,17 @@ fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
         let mut threat = _search(&tmp_board, depth-1, prune.invert());
 
         if let Some(reaction) = threat.movement {
-            if let Some(interception) = intercept(board, &reaction) {
-                movement.duck = interception;
-                tmp_board = board.copy_movement(movement);
-                threat = _search(&tmp_board, depth-1, prune.invert());
+            for duck in intercept(board, &reaction) {
+                let mut alternative_movement = movement;
+                alternative_movement.duck = duck;
+
+                tmp_board = board.copy_movement(alternative_movement);
+                let alternative_threat = _search(&tmp_board, depth-1, prune.invert());
+                
+                if alternative_threat.score < threat.score {
+                    threat = alternative_threat;
+                    movement = alternative_movement;
+                }
             }
         }
 
@@ -93,6 +100,10 @@ fn estimate_movement(movement: &Movement) -> i32 {
     score -= piece_value(movement.moved);
     score += x*(7-x) + y*(7-y);
 
+    // long movements may be good in duck chess to prevent being locked in a position
+    score += (movement.target.0 - movement.origin.0).abs();
+    score += (movement.target.1 - movement.origin.1).abs();
+
     if let Some(captured) = movement.captured {
         score += 10 * piece_value(captured);
     }
@@ -104,26 +115,32 @@ fn estimate_movement(movement: &Movement) -> i32 {
     score
 }
 
-fn intercept(board: &Board, movement: &Movement) -> Option<Position> {
-    // let duck = Position(0, 0);
-
-    let duck = match movement.moved {
+fn intercept(board: &Board, threat: &Movement) -> Vec<Position> {
+    let duck = match threat.moved {
         PieceKind::Knight | PieceKind::King | PieceKind::Pawn => {
-            intercept_jump(movement)
+            intercept_jump(threat)
         },
-
+        
         PieceKind::Rook | PieceKind::Bishop | PieceKind::Queen => {
-            intercept_slide(board, movement)
+            intercept_slide(board, threat)
         },
         
         PieceKind::Duck => {
             None
         },
     };
+    
+    let mut ducks = Vec::<Position>::new();
 
+    if board.get_square(threat.duck).is_none() {
+        ducks.push(threat.duck);
+    }
+    
+    if let Some(duck_pos) = duck {
+        ducks.push(duck_pos);
+    }
 
-
-    duck
+    ducks
 }
 
 fn intercept_jump(movement: &Movement) -> Option<Position> {
@@ -274,18 +291,17 @@ mod tests {
     }
 
     #[test]
-    fn test_interception() {
-        let mut board = Board::from_fen("8/8/8/8/8/8/5K1k/7N w - - 0 1");
-        let movement = Movement::piece_moves(&board, Position(7, 0), false).pop().unwrap();
-        
-        println!("{:?}", board);
+    fn test_ducktics_6() {
+        let board = Board::from_fen("kb*5/p2B4/8/8/8/8/8/7K w - - 0 1");
+        let best_move = dbg!(search(&board, 4));
 
-        if let Some(interception) = intercept(&board, &movement) {
-            board.place_duck(interception);
-        } else {
-            board.make_movement(movement);
+        if best_move.is_none() {
+            panic!("No moves found");
         }
+        let best_move = best_move.unwrap();
 
-        println!("{:?}", board);
+        assert_eq!(best_move.origin, Position(3, 6));
+        assert_eq!(best_move.target, Position(2, 5));
+        assert_eq!(best_move.duck, Position(1, 6));
     }
 }
