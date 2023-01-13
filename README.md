@@ -32,7 +32,7 @@ This was implemented in Rust using the old fashioned way:
 
 If you are interestd in more details, here we go:
 
-- I am using [Negamax](https://www.chessprogramming.org/Negamax) with [alpha-beta](https://www.chessprogramming.org/Alpha-Beta) pruning.
+- I am using [Negamax](https://www.chessprogramming.org/Negamax) with [alpha-beta](https://www.chessprogramming.org/Alpha-Beta) pruning and a simple move ordering.
 
 - To represent the board I am using the [mailbox](https://www.chessprogramming.org/Mailbox) aproach, were I have an 64 sized array of pieces or empty squares. The other aproach usually involves some [bitwise wizardry](https://www.chessprogramming.org/Bitboards).
 
