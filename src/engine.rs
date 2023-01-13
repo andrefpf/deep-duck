@@ -101,10 +101,6 @@ fn estimate_movement(movement: &Movement) -> i32 {
     score -= piece_value(movement.moved);
     score += x*(7-x) + y*(7-y);
 
-    // long movements may be good in duck chess to prevent being locked in a position
-    score += (movement.target.0 - movement.origin.0).abs();
-    score += (movement.target.1 - movement.origin.1).abs();
-
     if let Some(captured) = movement.captured {
         score += 10 * piece_value(captured);
     }
