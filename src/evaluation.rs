@@ -70,7 +70,7 @@ const KING_TABLE: [i32; 64] = [
  20, 30, 10,  0,  0, 10, 30, 20
 ];
 
-// Should update it
+// Should update this
 const DUCK_TABLE: [i32; 64] = [
 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0,

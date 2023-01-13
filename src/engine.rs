@@ -6,6 +6,7 @@ use crate::pieces::Position;
 use crate::movements::Movement;
 use crate::evaluation::{count_centipawns, piece_value};
 
+
 #[derive(Copy, Clone, Debug)]
 struct Prune {
     alpha: i32,

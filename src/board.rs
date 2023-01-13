@@ -6,6 +6,7 @@ use crate::movements::Movement;
 use crate::pieces::PieceKind;
 use crate::fen;
 
+
 #[derive(Clone)]
 pub struct Castle {
     pub short: bool,

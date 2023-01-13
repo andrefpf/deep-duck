@@ -1,9 +1,9 @@
 use crate::board::Board;
-// use crate::board::Square;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
+
 
 pub fn fen_to_board(notation: &str) -> Board {
     let mut board = Board::new();

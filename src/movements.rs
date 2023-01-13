@@ -4,6 +4,7 @@ use crate::pieces::Position;
 use crate::pieces::Piece;
 use crate::pieces::Color;
 
+
 #[derive(Copy, Clone, Debug)]
 pub struct Movement {
     pub origin: Position,
@@ -24,56 +25,6 @@ enum MovementDirection {
     BottomLeft,
     BottomRight,
 }
-
-// impl DuckMovement {
-//     pub fn from_movement(movement: Movement) -> DuckMovement {
-//         DuckMovement{
-//             origin: movement.origin,
-//             target: movement.target,
-//             duck: movement.origin,
-//             moved: movement.moved,
-//             captured: movement.captured,
-//             promotion: movement.promotion,
-//         }
-//     }
-
-//     pub fn avaliable_moves(board: &Board) -> Vec::<Self> {
-//         let mut movements = Vec::<Self>::with_capacity(140);
-//         let duck_square = board.duck_position();
-
-//         for movement in Movement::avaliable_moves(board, false) {
-//             for position in board.empty_positions() {
-//                 if position == movement.target {
-//                     continue;
-//                 }
-
-//                 let duck_movement = DuckMovement {
-//                     duck: position,
-//                     origin: movement.origin,
-//                     target: movement.target,
-//                     moved: movement.moved,
-//                     captured: movement.captured,
-//                     promotion: movement.promotion,
-//                 };
-
-//                 movements.push(duck_movement);
-//             }
-
-//             let duck_movement = DuckMovement {
-//                 duck: movement.origin,
-//                 origin: movement.origin,
-//                 target: movement.target,
-//                 moved: movement.moved,
-//                 captured: movement.captured,
-//                 promotion: movement.promotion,
-//             };
-
-//             movements.push(duck_movement);
-//         }
-
-//         movements
-//     }
-// }
 
 impl Movement {
     fn from_coords(board: &Board, x0: i32, y0: i32, x1: i32, y1: i32) -> Option<Self> {
