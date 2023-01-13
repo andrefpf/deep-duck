@@ -47,16 +47,16 @@ To help you with the FEN stuff use this [nice editor](https://www.pychess.org/ed
 
     Your FEN position: 8/3*4/8/8/8/4K3/8/7k w - - 0 1 q
     8                 
-    7       🐤         
+    7                 
     6                 
     5                 
     4                 
-    3         ♚       
-    2                 
+    3                 
+    2           ♚   🐤 
     1               ♔ 
-    A B C D E F G H
+      A B C D E F G H
     Move: E3 to F2 and duck to H2
-    Time elapsed: 38.60762ms
+    Time elapsed: 31.667347ms
 
 ## How can I compile it?
 You will need Cargo. Then run this in your terminal: 

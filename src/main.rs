@@ -34,16 +34,18 @@ fn cli() {
         let fen = get_input();
 
         let start = Instant::now();
-        let board = Board::from_fen(&fen);
+        let mut board = Board::from_fen(&fen);
         let best_move = search(&board, 5);
         let duration = start.elapsed();
         
-        println!("{:?}", board);
-
+        
         if let Some(movement) = best_move {
+            board.make_movement(movement);
+            println!("{:?}", board);
             println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck);
             println!("Time elapsed: {:?}", duration);
         } else {
+            println!("{:?}", board);
             println!("There are no movements for your position.");
         }
         println!();
