@@ -16,6 +16,9 @@ Yeah, I think. It is much better than me, and it won the best engine I found onl
 
 To be fair, pychess is using fairy stockfish and the duck evaluation isn't fully finished yet. But common, Deep Duck also isn't finished.
 
+## Wait, is this a conversation with yourself?
+[Maybe](https://pt.wikipedia.org/wiki/Esquizofrenia). Next question.
+
 ## Nice, how it works? 
 This was implemented in Rust using the old fashioned way: 
 
@@ -34,9 +37,6 @@ If you are interestd in more details, here we go:
 - To represent the board I am using the [mailbox](https://www.chessprogramming.org/Mailbox) aproach, were I have an 64 sized array of pieces or empty squares. The other aproach usually involves some [bitwise wizardry](https://www.chessprogramming.org/Bitboards).
 
 - For performance reasons I just test 3 duck positions: the previous position of the moved piece, the position in front of the piece we think the enemy wants to move, the position we think the enemy wants to put the duck. That misses some cases were the duck can block two pieces the same time, but in general seems a very usefull heuristics.
-
-## Wait, is this a conversation with yourself?
-[Maybe](https://pt.wikipedia.org/wiki/Esquizofrenia). Next question.
 
 ## How can I use this?
 In the future you will play it [here](https://andrefpf.github.io/duckmate/), but it is not working yet.
