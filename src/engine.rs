@@ -161,10 +161,16 @@ fn intercept_slide(board: &Board, movement: &Movement) -> Option<Position> {
         Ordering::Equal => 0,
     };
 
-    let pos = Position(movement.origin.0 + dx, movement.origin.1 + dy);
+    // Usually you have 2 ways to block a movement:
+    // puting the duck next to the atacker (best)
+    // or puting the duck next to the victm (if the other option already has a duck)
+    let pos_1 = Position(movement.origin.0 + dx, movement.origin.1 + dy);
+    let pos_2 = Position(movement.target.0 - dx, movement.target.1 - dy);
 
-    if board.get_square(pos).is_none() {
-        Some(pos)
+    if board.get_square(pos_1).is_none() {
+        Some(pos_1)
+    } else if board.get_square(pos_2).is_none() {
+        Some(pos_2)
     } else {
         None
     }
@@ -295,5 +301,20 @@ mod tests {
         assert_eq!(best_move.origin, Position(3, 6));
         assert_eq!(best_move.target, Position(2, 5));
         assert_eq!(best_move.duck, Position(1, 6));
+    }
+
+    #[test]
+    fn test_ducktics_7() {
+        let board = Board::from_fen("rnbqkb1r/ppp1pppp/2*2n2/1B1p3Q/4P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1");
+        let best_move = dbg!(search(&board, 4));
+
+        if best_move.is_none() {
+            panic!("No moves found");
+        }
+        let best_move = best_move.unwrap();
+
+        assert_eq!(best_move.origin, Position(5, 5));
+        assert_eq!(best_move.target, Position(7, 4));
+        assert_eq!(best_move.duck, Position(3, 6));
     }
 }
