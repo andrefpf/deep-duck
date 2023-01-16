@@ -4,7 +4,7 @@ use crate::pieces::Piece;
 use crate::pieces::Color;
 
 
-const PAWN_TABLE: [i32; 64] = [
+static PAWN_TABLE: [i32; 64] = [
  0,  0,  0,  0,  0,  0,  0,  0,
 50, 50, 50, 50, 50, 50, 50, 50,
 10, 10, 20, 30, 30, 20, 10, 10,
@@ -15,7 +15,7 @@ const PAWN_TABLE: [i32; 64] = [
  0,  0,  0,  0,  0,  0,  0,  0,
 ];
 
-const KNIGHT_TABLE: [i32; 64] = [
+static KNIGHT_TABLE: [i32; 64] = [
 -50,-40,-30,-30,-30,-30,-40,-50,
 -40,-20,  0,  0,  0,  0,-20,-40,
 -30,  0, 10, 15, 15, 10,  0,-30,
@@ -26,7 +26,7 @@ const KNIGHT_TABLE: [i32; 64] = [
 -50,-40,-30,-30,-30,-30,-40,-50,
 ];
 
-const BISHOP_TABLE: [i32; 64] = [
+static BISHOP_TABLE: [i32; 64] = [
 -20,-10,-10,-10,-10,-10,-10,-20,
 -10,  0,  0,  0,  0,  0,  0,-10,
 -10,  0,  5, 10, 10,  5,  0,-10,
@@ -37,7 +37,7 @@ const BISHOP_TABLE: [i32; 64] = [
 -20,-10,-10,-10,-10,-10,-10,-20,
 ];
 
-const ROOK_TABLE: [i32; 64] = [
+static ROOK_TABLE: [i32; 64] = [
  0,  0,  0,  0,  0,  0,  0,  0,
  5, 10, 10, 10, 10, 10, 10,  5,
 -5,  0,  0,  0,  0,  0,  0, -5,
@@ -48,7 +48,7 @@ const ROOK_TABLE: [i32; 64] = [
  0,  0,  0,  5,  5,  0,  0,  0
 ];
 
-const QUEEN_TABLE: [i32; 64] = [
+static QUEEN_TABLE: [i32; 64] = [
 -20,-10,-10, -5, -5,-10,-10,-20,
 -10,  0,  0,  0,  0,  0,  0,-10,
 -10,  0,  5,  5,  5,  5,  0,-10,
@@ -59,7 +59,7 @@ const QUEEN_TABLE: [i32; 64] = [
 -20,-10,-10, -5, -5,-10,-10,-20
 ];
 
-const KING_TABLE: [i32; 64] = [
+static KING_TABLE: [i32; 64] = [
 -30,-40,-40,-50,-50,-40,-40,-30,
 -30,-40,-40,-50,-50,-40,-40,-30,
 -30,-40,-40,-50,-50,-40,-40,-30,
@@ -71,7 +71,7 @@ const KING_TABLE: [i32; 64] = [
 ];
 
 // Should update this
-const DUCK_TABLE: [i32; 64] = [
+static DUCK_TABLE: [i32; 64] = [
 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0,
@@ -96,11 +96,11 @@ pub fn count_centipawns(board: &Board) -> i32 {
     score
 }
 
-pub fn square_value(piece: Piece) -> i32 {
+pub fn square_value(piece: &Piece) -> i32 {
     position_value(piece) + piece_value(piece.kind)
 }
 
-pub fn position_value(piece: Piece) -> i32 {
+pub fn position_value(piece: &Piece) -> i32 {
     let table = piece_table(piece.kind);
     let mut index = piece.pos.0 + 8 * piece.pos.1;
 
@@ -123,14 +123,14 @@ pub fn piece_value(piece_kind: PieceKind) -> i32 {
     }
 }
 
-fn piece_table(piece_kind: PieceKind) -> [i32; 64] {
+fn piece_table(piece_kind: PieceKind) -> &'static [i32; 64] {
     match piece_kind {
-        PieceKind::Pawn => PAWN_TABLE,
-        PieceKind::Bishop => BISHOP_TABLE,
-        PieceKind::Knight => KNIGHT_TABLE,
-        PieceKind::Rook => ROOK_TABLE,
-        PieceKind::Queen => QUEEN_TABLE,
-        PieceKind::King => KING_TABLE,
-        PieceKind::Duck => DUCK_TABLE,
+        PieceKind::Pawn => &PAWN_TABLE,
+        PieceKind::Bishop => &BISHOP_TABLE,
+        PieceKind::Knight => &KNIGHT_TABLE,
+        PieceKind::Rook => &ROOK_TABLE,
+        PieceKind::Queen => &QUEEN_TABLE,
+        PieceKind::King => &KING_TABLE,
+        PieceKind::Duck => &DUCK_TABLE,
     }
 }

@@ -16,6 +16,7 @@ pub struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
+    duck: Option<Position>,
     pub move_counter: usize,
     pub last_move: Option<Movement>,
     pub en_passant: bool,
@@ -37,6 +38,7 @@ impl Board {
     pub fn new() -> Self {
         Board {
             data: [None; 64],
+            duck: None,
             move_counter: 0,
             last_move: None,
             en_passant: false,
@@ -52,28 +54,11 @@ impl Board {
     
     #[allow(dead_code)]
     pub fn arranged() -> Self {
-        
         Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
-    pub fn ocuppied_squares(&self) -> Vec::<Piece> {
-        let mut squares = Vec::<Piece>::with_capacity(32);
-
-        for piece in self.data.into_iter().flatten() {
-            squares.push(piece);
-        }
-        
-        squares
-    }
-
-    pub fn duck_position(&self) -> Option<Position> {
-        for piece in self.data.into_iter().flatten() {
-            if let PieceKind::Duck = piece.kind {
-                return Some(piece.pos);
-            }
-        }
-        
-        None
+    pub fn ocuppied_squares(&self) -> std::iter::Flatten<std::slice::Iter<Option<Piece>>> {
+        self.data.iter().flatten()
     }
 
     pub fn get_square(&self, pos: Position) -> Option<Piece> {
@@ -87,6 +72,10 @@ impl Board {
         if let Some(mut piece) = square {
             piece.pos = pos;
             target_square = Some(piece);
+
+            if let PieceKind::Duck = piece.kind{
+                self.duck = Some(piece.pos);
+            }
         } 
 
         let index = pos.0 + 8 * pos.1;
@@ -126,7 +115,7 @@ impl Board {
     }
 
     pub fn place_duck(&mut self, position: Position) {
-        if let Some(duck_origin) = self.duck_position() {
+        if let Some(duck_origin) = self.duck {
             self.move_piece(duck_origin, position)
         } else {
             let piece = Piece {
