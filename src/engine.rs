@@ -50,32 +50,11 @@ fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
         return _evaluate(board);
     }
 
-    for mut movement in simple_movements {
-        let mut tmp_board = board.copy_movement(movement);
-        let mut threat = _search(&tmp_board, depth-1, prune.invert());
-
-        if let Some(reaction) = threat.movement {
-            for duck in intercept(board, &reaction) {
-                let mut alternative_movement = movement;
-                alternative_movement.duck = duck;
-
-                tmp_board = board.copy_movement(alternative_movement);
-                let alternative_threat = _search(&tmp_board, depth-1, prune.invert());
-                
-                if alternative_threat.score < threat.score {
-                    threat = alternative_threat;
-                    movement = alternative_movement;
-                }
-            }
-        }
-
-        let evaluation = Evaluation {
-            movement: Some(movement),
-            score: -threat.score,
-        };
+    for movement in simple_movements {
+        let evaluation = duck_search(board, depth-1, prune.invert(), movement);
 
         if evaluation.score >= prune.beta {
-            return Evaluation{movement: Some(movement), score: prune.beta};
+            return Evaluation{movement: evaluation.movement, score: prune.beta};
         }
 
         if evaluation.score > prune.alpha {
@@ -91,6 +70,30 @@ fn _evaluate(board: &Board) -> Evaluation {
     Evaluation {
         movement: None,
         score: count_centipawns(board),
+    }
+}
+
+fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) -> Evaluation {
+    let mut movement = movement;
+    let mut tmp_board = board.copy_movement(movement);
+    let mut threat = _search(&tmp_board, depth, prune);
+
+    if let Some(reaction) = threat.movement {
+        for duck in intercept(board, &reaction) {
+            let alternative_movement = Movement {duck, ..movement};
+            tmp_board = board.copy_movement(alternative_movement);
+            let alternative_threat = _search(&tmp_board, depth, prune);
+            
+            if alternative_threat.score < threat.score {
+                threat = alternative_threat;
+                movement = alternative_movement;
+            }
+        }
+    }
+
+    Evaluation {
+        movement: Some(movement),
+        score: -threat.score,
     }
 }
 
