@@ -7,17 +7,12 @@
 ## What?
 Deep duck is an engine to evaluate and sugest moves for the duck chess variant.
 
-## What is duck chess?
-Duck Chess is a chess variant invented by Dr. Tim Paulden in 2016. The game follows most regular chess rules but adds a dynamic component to the mix: a rubber duck that both players can move.
-You can learn more about it [here](https://www.chess.com/terms/duck-chess) and play some duckchess in [chess.com](https://www.chess.com/variants/duck-chess) or in [pychess](https://www.pychess.org/).
+## Why?
+When I found this [game](https://www.chess.com/terms/duck-chess) and played it [online](https://www.chess.com/variants/duck-chess), I quickly found that I was pretty bad at it. Then I thought `Well, I will play against some bots and then come back here`. To my surprise bots didn't existed yet, so I made my own.
 
 ## Is it a good chess engine?
-Yeah, I think. It is much better than me, and it won the best engine I found online. [Here](https://www.pychess.org/4fKk39R2?ply=72) you can see a game Deep Duck played against Pychess strongest engine!
-
-To be fair, pychess is using fairy stockfish and the duck evaluation isn't fully finished yet. But common, Deep Duck also isn't finished.
-
-## Wait, is this a conversation with yourself?
-[Maybe](https://pt.wikipedia.org/wiki/Esquizofrenia). Next question.
+Yeah, it already is much better than me. [Here](https://www.pychess.org/4fKk39R2?ply=72) you can see a game it played against Pychess strongest stockfish engine, **AND DEEP DUCK WON!**
+To be fair, the stockfish duck evaluation isn't fully finished yet. But common, Deep Duck also isn't finished.
 
 ## Nice, how it works? 
 This was implemented in Rust using the old fashioned way: 
