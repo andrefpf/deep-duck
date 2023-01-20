@@ -16,7 +16,7 @@ pub struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
-    duck: Option<Position>,
+    pub duck: Option<Position>,
     pub move_counter: usize,
     pub last_move: Option<Movement>,
     pub en_passant: bool,
@@ -72,10 +72,6 @@ impl Board {
         if let Some(mut piece) = square {
             piece.pos = pos;
             target_square = Some(piece);
-
-            if let PieceKind::Duck = piece.kind{
-                self.duck = Some(piece.pos);
-            }
         } 
 
         let index = pos.0 + 8 * pos.1;
@@ -83,24 +79,46 @@ impl Board {
         self.data[index as usize] = target_square;
     }
 
-    pub fn move_piece(&mut self, origin: Position, target: Position) {
+    pub fn drag_piece(&mut self, origin: Position, target: Position) {
         let square = self.get_square(origin);
-        self.move_counter += 1;
         self.set_square(origin, None);
         self.set_square(target, square);
     }
-
+    
     pub fn make_movement(&mut self, movement: Movement) {
-        self.move_piece(movement.origin, movement.target);
-        self.place_duck(movement.duck);
+        self.drag_piece(movement.origin, movement.target);
+        self.place_duck(Some(movement.duck_target));
         self.update_color();
 
+        self.move_counter += 1;
+        
         if let Some(kind) = movement.promotion {
             if let Some(mut piece) = self.get_square(movement.target) {
                 piece.kind = kind;
                 self.set_square(movement.target, Some(piece));
             }
         }
+    }
+    
+    pub fn unmake_movement(&mut self, movement: Movement) {
+        self.place_duck(movement.duck_origin);
+        self.drag_piece(movement.target, movement.origin);
+        
+        self.move_counter -= 1;
+        
+        if let Some(kind) = movement.captured {
+            let piece = Piece {pos:movement.target, color:self.active_color, kind};
+            self.set_square(movement.target, Some(piece));
+        }
+        
+        if movement.promotion.is_some() {
+            if let Some(mut piece) = self.get_square(movement.target) {
+                piece.kind = PieceKind::Pawn;
+                self.set_square(movement.target, Some(piece));
+            }
+        }
+
+        self.update_color();
     }
 
     pub fn copy_movement(&self, movement: Movement) -> Self {
@@ -114,17 +132,18 @@ impl Board {
         fen::board_to_fen(self)
     }
 
-    pub fn place_duck(&mut self, position: Position) {
-        if let Some(duck_origin) = self.duck {
-            self.move_piece(duck_origin, position)
-        } else {
-            let piece = Piece {
-                pos:position, 
-                color:Color::Yellow, 
-                kind:PieceKind::Duck,
-            };
-            self.set_square(position, Some(piece));
-        }
+    pub fn place_duck(&mut self, position: Option<Position>) {
+        match (self.duck, position) {
+            (Some(origin), Some(target)) => self.drag_piece(origin, target),
+            (Some(origin), None) => self.set_square(origin, None),
+            (None, Some(target)) => {
+                let piece = Piece {pos:target, color:Color::Yellow, kind:PieceKind::Duck};
+                self.set_square(target, Some(piece));    
+            },
+            (None, None) => (),
+        };
+
+        self.duck = position;
     }
 
     fn update_color(&mut self) {

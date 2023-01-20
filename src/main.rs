@@ -35,14 +35,14 @@ fn cli() {
 
         let start = Instant::now();
         let mut board = Board::from_fen(&fen);
-        let best_move = search(&board, 5);
+        let best_move = search(&board, 10);
         let duration = start.elapsed();
         
         
         if let Some(movement) = best_move {
             board.make_movement(movement);
             println!("{:?}", board);
-            println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck);
+            println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
             println!("Time elapsed: {:?}", duration);
         } else {
             println!("{:?}", board);

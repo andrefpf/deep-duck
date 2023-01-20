@@ -80,6 +80,14 @@ fn _pieces_decode(board: &mut Board, notation_part: &str) {
                 let int_c: i32 = c as i32 - 0x30;
                 x += int_c;
             },
+
+            '*' => {
+                let pos = Position(x, 7-y);
+                let square = Some(fen_to_piece(c, pos));
+                board.set_square(pos, square);
+                board.duck = Some(pos);
+                x += 1;    
+            }
             
             _ => {
                 let pos = Position(x, 7-y);
