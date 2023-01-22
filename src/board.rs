@@ -120,6 +120,12 @@ impl Board {
 
         self.update_color();
     }
+
+    pub fn copy_movement(&self, movement: Movement) -> Self {
+        let mut board = self.clone();
+        board.make_movement(movement);
+        board
+    }
     
     #[allow(dead_code)]
     pub fn to_fen(&self) -> String {
