@@ -9,8 +9,7 @@ use crate::pieces::Color;
 pub struct Movement {
     pub origin: Position,
     pub target: Position,
-    pub duck_origin: Option<Position>,
-    pub duck_target: Position,
+    pub duck: Position,
     pub moved: PieceKind,
     pub captured: Option<PieceKind>,
     pub promotion: Option<PieceKind>
@@ -59,8 +58,7 @@ impl Movement {
         let movement = Movement {
             origin,
             target,
-            duck_origin: board.duck,
-            duck_target: origin,
+            duck: origin,
             moved: origin_piece.kind,
             captured,
             promotion: None,

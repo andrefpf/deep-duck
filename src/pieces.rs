@@ -46,7 +46,7 @@ impl Piece {
             (Color::White, PieceKind::King) => '♚',
             (Color::White, PieceKind::Pawn) => '♟',
 
-            (Color::Yellow, PieceKind::Duck) => '☻',
+            (Color::Yellow, PieceKind::Duck) => '🐤',
             _ => panic!("Invalid piece."),
         }
     }

@@ -33,11 +33,10 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
         alpha: -i32::MAX,
         beta: i32::MAX,
     };
-    let mut board = board.clone();
-    _search(&mut board, depth, prune).movement
+    _search(board, depth, prune).movement
 }
 
-fn _search(board: &mut Board, depth: usize, prune: Prune) -> Evaluation {
+fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
     if depth == 0 {
         return _evaluate(board);
     }
@@ -74,32 +73,26 @@ fn _evaluate(board: &Board) -> Evaluation {
     }
 }
 
-fn duck_search(board: &mut Board, depth: usize, prune: Prune, movement: Movement) -> Evaluation {
-    let mut best = movement;
-    
-    board.make_movement(movement);
-    let mut threat = _search(board, depth, prune);
-    board.unmake_movement(movement);
+fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) -> Evaluation {
+    let mut movement = movement;
+    let mut tmp_board = board.copy_movement(movement);
+    let mut threat = _search(&tmp_board, depth, prune);
 
     if let Some(reaction) = threat.movement {
-        for duck_target in intercept(board, reaction) {
-            let alternative_movement = Movement {duck_target, ..movement};
-            // let mut tmp_board = board.copy_movement(alternative_movement);
-            // let alternative_threat = _search(&mut tmp_board, depth, prune);
-
-            board.make_movement(alternative_movement);
-            let alternative_threat = _search(board, depth, prune);
-            board.unmake_movement(alternative_movement);
+        for duck in intercept(board, &reaction) {
+            let alternative_movement = Movement {duck, ..movement};
+            tmp_board = board.copy_movement(alternative_movement);
+            let alternative_threat = _search(&tmp_board, depth, prune);
             
             if alternative_threat.score < threat.score {
                 threat = alternative_threat;
-                best = alternative_movement;
+                movement = alternative_movement;
             }
         }
     }
 
     Evaluation {
-        movement: Some(best),
+        movement: Some(movement),
         score: -threat.score,
     }
 }
@@ -122,7 +115,7 @@ fn estimate_movement(movement: &Movement) -> i32 {
     score
 }
 
-fn intercept(board: &Board, threat: Movement) -> Vec<Position> {
+fn intercept(board: &Board, threat: &Movement) -> Vec<Position> {
     let duck = match threat.moved {
         PieceKind::Knight | PieceKind::King | PieceKind::Pawn => {
             intercept_jump(threat)
@@ -139,8 +132,8 @@ fn intercept(board: &Board, threat: Movement) -> Vec<Position> {
     
     let mut ducks = Vec::<Position>::new();
 
-    if board.get_square(threat.duck_target).is_none() {
-        ducks.push(threat.duck_target);
+    if board.get_square(threat.duck).is_none() {
+        ducks.push(threat.duck);
     }
     
     if let Some(duck_pos) = duck {
@@ -150,7 +143,7 @@ fn intercept(board: &Board, threat: Movement) -> Vec<Position> {
     ducks
 }
 
-fn intercept_jump(movement: Movement) -> Option<Position> {
+fn intercept_jump(movement: &Movement) -> Option<Position> {
     if movement.captured.is_none() {
         Some(movement.target)
     } else {
@@ -158,7 +151,7 @@ fn intercept_jump(movement: Movement) -> Option<Position> {
     }
 }
 
-fn intercept_slide(board: &Board, movement: Movement) -> Option<Position> {
+fn intercept_slide(board: &Board, movement: &Movement) -> Option<Position> {
     let dx = match (movement.target.0 - movement.origin.0).cmp(&0) {
         Ordering::Greater => 1,
         Ordering::Less => -1,
@@ -237,7 +230,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(4, 2));
         assert_eq!(best_move.target, Position(5, 1));
-        assert_eq!(best_move.duck_target, Position(7, 1));
+        assert_eq!(best_move.duck, Position(7, 1));
     }
 
     #[test]
@@ -266,7 +259,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(3, 5));
         assert_eq!(best_move.target, Position(7, 1));
-        assert_eq!(best_move.duck_target, Position(7, 0));
+        assert_eq!(best_move.duck, Position(7, 0));
     }
 
     #[test]
@@ -295,7 +288,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(6, 4));
         assert_eq!(best_move.target, Position(5, 5));
-        assert_eq!(best_move.duck_target, Position(5, 7));
+        assert_eq!(best_move.duck, Position(5, 7));
     }
 
     #[test]
@@ -310,7 +303,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(3, 6));
         assert_eq!(best_move.target, Position(2, 5));
-        assert_eq!(best_move.duck_target, Position(1, 6));
+        assert_eq!(best_move.duck, Position(1, 6));
     }
 
     #[test]
@@ -325,6 +318,6 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(5, 5));
         assert_eq!(best_move.target, Position(7, 4));
-        assert_eq!(best_move.duck_target, Position(3, 6));
+        assert_eq!(best_move.duck, Position(3, 6));
     }
 }
