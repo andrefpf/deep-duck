@@ -29,6 +29,16 @@ pub enum PieceKind {
 #[derive(Copy, Clone, PartialEq)]
 pub struct Position(pub i32, pub i32);
 
+impl Color {
+    pub fn invert(&self) -> Self {
+        match self {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+            Color::Yellow => Color::Yellow,
+        }
+    }
+}
+
 impl Piece {
     pub fn utf8_repr(&self) -> char {
         match (self.color, self.kind) {

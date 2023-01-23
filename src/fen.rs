@@ -83,8 +83,8 @@ fn _pieces_decode(board: &mut Board, notation_part: &str) {
             
             _ => {
                 let pos = Position(x, 7-y);
-                let square = Some(fen_to_piece(c, pos));
-                board.set_square(pos, square);
+                let square = fen_to_piece(c, pos);
+                board.set_square(square);
                 x += 1;
             }
         }

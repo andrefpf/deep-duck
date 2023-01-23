@@ -51,6 +51,11 @@ impl Board {
     pub fn from_fen(notation: &str) -> Self {
         fen::fen_to_board(notation)
     }
+
+    #[allow(dead_code)]
+    pub fn to_fen(&self) -> String {
+        fen::board_to_fen(self)
+    }
     
     #[allow(dead_code)]
     pub fn arranged() -> Self {
@@ -65,40 +70,41 @@ impl Board {
         let index = pos.0 + 8 * pos.1;
         self.data[index as usize]
     }
-    
-    pub fn set_square(&mut self, pos: Position, square: Option<Piece>) {
-        let mut target_square = square;
 
-        if let Some(mut piece) = square {
-            piece.pos = pos;
-            target_square = Some(piece);
-
-            if let PieceKind::Duck = piece.kind{
-                self.duck = Some(piece.pos);
-            }
-        } 
-
+    pub fn clear_square(&mut self, pos: Position) {
         let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
-        self.data[index as usize] = target_square;
+        self.data[index as usize] = None;
+    }
+    
+    pub fn set_square(&mut self, piece: Piece) {
+        if let PieceKind::Duck = piece.kind{
+            self.duck = Some(piece.pos);
+        }
+
+        let index = piece.pos.0 + 8 * piece.pos.1;
+        assert!(index >= 0);
+        self.data[index as usize] = Some(piece);
     }
 
-    pub fn move_piece(&mut self, origin: Position, target: Position) {
-        let square = self.get_square(origin);
-        self.move_counter += 1;
-        self.set_square(origin, None);
-        self.set_square(target, square);
+    pub fn drag_piece(&mut self, origin: Position, target: Position) {
+        if let Some(mut square) = self.get_square(origin) {
+            square.pos = target;
+            self.move_counter += 1;
+            self.clear_square(origin);
+            self.set_square(square);
+        }
     }
 
     pub fn make_movement(&mut self, movement: Movement) {
-        self.move_piece(movement.origin, movement.target);
+        self.drag_piece(movement.origin, movement.target);
         self.place_duck(movement.duck_target);
         self.update_color();
 
         if let Some(kind) = movement.promotion {
             if let Some(mut piece) = self.get_square(movement.target) {
                 piece.kind = kind;
-                self.set_square(movement.target, Some(piece));
+                self.set_square(piece);
             }
         }
     }
@@ -108,31 +114,18 @@ impl Board {
         board.make_movement(movement);
         board
     }
-    
-    #[allow(dead_code)]
-    pub fn to_fen(&self) -> String {
-        fen::board_to_fen(self)
-    }
 
     pub fn place_duck(&mut self, position: Position) {
-        if let Some(duck_origin) = self.duck {
-            self.move_piece(duck_origin, position)
-        } else {
-            let piece = Piece {
-                pos:position, 
-                color:Color::Yellow, 
-                kind:PieceKind::Duck,
-            };
-            self.set_square(position, Some(piece));
+        if let Some(duck) = self.duck {
+            self.clear_square(duck);
         }
+
+        let piece = Piece {pos:position, color:Color::Yellow, kind:PieceKind::Duck};
+        self.set_square(piece);
     }
 
     fn update_color(&mut self) {
-        self.active_color = match self.active_color {
-            Color::White => Color::Black,
-            Color::Black => Color::White,
-            Color::Yellow => panic!("Invalid active color"),
-        };
+        self.active_color = self.active_color.invert();
     }
 }
 
