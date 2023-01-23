@@ -11,8 +11,9 @@ pub struct Movement {
     pub target: Position,
     pub duck_origin: Option<Position>,
     pub duck_target: Position,
+    pub color: Color,
     pub moved: PieceKind,
-    pub captured: Option<PieceKind>,
+    pub captured: Option<Piece>,
     pub promotion: Option<PieceKind>
 }
 
@@ -28,7 +29,7 @@ enum MovementDirection {
 }
 
 impl Movement {
-    fn from_coords(board: &Board, x0: i32, y0: i32, x1: i32, y1: i32) -> Option<Self> {
+    pub fn from_coords(board: &Board, x0: i32, y0: i32, x1: i32, y1: i32) -> Option<Self> {
         if !Self::in_boundaries(x0, y0) || !Self::in_boundaries(x1, y1) {
             return None;
         }
@@ -41,7 +42,6 @@ impl Movement {
 
         // if we can not unwrap, the movement is invalid anyway
         let origin_piece = origin_square.unwrap();
-        let captured = target_square.map(|piece| piece.kind);
 
         if let Some(target_piece) = target_square {
             // you cant capture your own pieces
@@ -61,8 +61,9 @@ impl Movement {
             target,
             duck_origin: board.duck,
             duck_target: origin,
+            color: origin_piece.color,
             moved: origin_piece.kind,
-            captured,
+            captured: target_square,
             promotion: None,
         };
 
@@ -286,7 +287,7 @@ impl Movement {
     }
 }
 
-pub fn perft(board: &Board, depth: usize) -> usize {
+pub fn perft(board: &mut Board, depth: usize) -> usize {
     if depth == 0 {
         return 1;
     }
@@ -294,8 +295,12 @@ pub fn perft(board: &Board, depth: usize) -> usize {
     let mut nodes = 0;
 
     for movement in Movement::avaliable_moves(board) {
-        let tmp_board = board.copy_movement(movement);
-        nodes += perft(&tmp_board, depth-1)
+        board.make_movement(movement);
+        nodes += perft(board, depth-1);
+        board.unmake_movement(movement);
+
+        // let mut tmp_board = board.copy_movement(movement);
+        // nodes += perft(&mut tmp_board, depth-1);
     }
     
     nodes
@@ -308,7 +313,7 @@ mod tests {
     #[test]
     fn test_perft() {
         // https://www.chessprogramming.org/Perft_Results
-        let nodes = perft(&Board::arranged(), 3);    
+        let nodes = perft(&mut Board::arranged(), 3);    
         assert!(nodes == 8902);
     }
 

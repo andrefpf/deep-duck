@@ -105,7 +105,7 @@ fn estimate_movement(movement: &Movement) -> i32 {
     score += x*(7-x) + y*(7-y);
 
     if let Some(captured) = movement.captured {
-        score += 10 * piece_value(captured);
+        score += 10 * piece_value(captured.kind);
     }
 
     if let Some(promotion) = movement.promotion {

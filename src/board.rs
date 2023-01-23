@@ -5,7 +5,8 @@ use crate::pieces::Color;
 use crate::movements::Movement;
 use crate::pieces::PieceKind;
 use crate::fen;
-
+use std::iter::Flatten;
+use std::slice::Iter;
 
 #[derive(Clone)]
 pub struct Castle {
@@ -45,7 +46,7 @@ impl Board {
         Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
-    pub fn ocuppied_squares(&self) -> std::iter::Flatten<std::slice::Iter<Option<Piece>>> {
+    pub fn ocuppied_squares(&self) -> Flatten<Iter<Option<Piece>>> {
         self.data.iter().flatten()
     }
 
@@ -55,13 +56,19 @@ impl Board {
     }
 
     pub fn clear_square(&mut self, pos: Position) {
+        if let Some(duck) = self.duck {
+            if duck == pos {
+                self.duck = None;
+            }
+        }
+
         let index = pos.0 + 8 * pos.1;
         assert!(index >= 0);
         self.data[index as usize] = None;
     }
     
     pub fn set_square(&mut self, piece: Piece) {
-        if let PieceKind::Duck = piece.kind{
+        if let PieceKind::Duck = piece.kind {
             self.duck = Some(piece.pos);
         }
 
@@ -74,22 +81,39 @@ impl Board {
         if let Some(mut square) = self.get_square(origin) {
             square.pos = target;
             self.move_counter += 1;
-            self.clear_square(origin);
             self.set_square(square);
+            self.clear_square(origin);
         }
     }
 
     pub fn make_movement(&mut self, movement: Movement) {
         self.drag_piece(movement.origin, movement.target);
-        self.place_duck(movement.duck_target);
+        self.place_duck(Some(movement.duck_target));
         self.update_color();
 
         if let Some(kind) = movement.promotion {
-            if let Some(mut piece) = self.get_square(movement.target) {
-                piece.kind = kind;
-                self.set_square(piece);
-            }
+            let mut piece = self.get_square(movement.target).unwrap();
+            piece.kind = kind;
+            self.set_square(piece);
         }
+    }
+
+    pub fn unmake_movement(&mut self, movement: Movement) {
+        self.update_color();
+        self.place_duck(movement.duck_origin);
+        self.drag_piece(movement.target, movement.origin);
+
+        if let Some(captured) = movement.captured {
+            self.set_square(captured);
+            // let piece = Piece {pos:movement.target, kind:captured.kind, color:movement.color.invert()};
+        }
+
+        // if let Some(kind) = movement.promotion {
+        //     if let Some(mut piece) = self.get_square(movement.target) {
+        //         piece.kind = kind;
+        //         self.set_square(piece);
+        //     }
+        // }
     }
 
     pub fn copy_movement(&self, movement: Movement) -> Self {
@@ -98,13 +122,15 @@ impl Board {
         board
     }
 
-    pub fn place_duck(&mut self, position: Position) {
+    pub fn place_duck(&mut self, position: Option<Position>) {
         if let Some(duck) = self.duck {
             self.clear_square(duck);
         }
 
-        let piece = Piece {pos:position, color:Color::Yellow, kind:PieceKind::Duck};
-        self.set_square(piece);
+        if let Some(pos) = position {
+            let piece = Piece {pos, color:Color::Yellow, kind:PieceKind::Duck};
+            self.set_square(piece);
+        }
     }
 
     fn update_color(&mut self) {

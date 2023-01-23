@@ -15,7 +15,7 @@ pub struct Piece {
     pub kind: PieceKind,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum PieceKind {
     Pawn,
     Rook,
