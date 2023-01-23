@@ -16,7 +16,7 @@ pub struct Castle {
 #[derive(Clone)]
 pub struct Board {
     data: [Option<Piece>; 64],
-    duck: Option<Position>,
+    pub duck: Option<Position>,
     pub move_counter: usize,
     pub last_move: Option<Movement>,
     pub en_passant: bool,
@@ -92,7 +92,7 @@ impl Board {
 
     pub fn make_movement(&mut self, movement: Movement) {
         self.move_piece(movement.origin, movement.target);
-        self.place_duck(movement.duck);
+        self.place_duck(movement.duck_target);
         self.update_color();
 
         if let Some(kind) = movement.promotion {

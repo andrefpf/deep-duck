@@ -7,6 +7,7 @@ mod evaluation;
 
 use crate::board::Board;
 use crate::engine::search;
+use crate::engine::perft;
 use std::time::Instant;
 use std::io::{stdin,stdout,Write};
 
@@ -42,7 +43,7 @@ fn cli() {
         if let Some(movement) = best_move {
             board.make_movement(movement);
             println!("{:?}", board);
-            println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck);
+            println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
             println!("Time elapsed: {:?}", duration);
         } else {
             println!("{:?}", board);
@@ -53,5 +54,8 @@ fn cli() {
 }
 
 fn main() {
-    cli()
+    // cli()
+    let mut board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ");
+
+    dbg!(perft(&board, 3));
 }

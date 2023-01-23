@@ -79,8 +79,8 @@ fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) ->
     let mut threat = _search(&tmp_board, depth, prune);
 
     if let Some(reaction) = threat.movement {
-        for duck in intercept(board, &reaction) {
-            let alternative_movement = Movement {duck, ..movement};
+        for duck_target in intercept(board, &reaction) {
+            let alternative_movement = Movement {duck_target, ..movement};
             tmp_board = board.copy_movement(alternative_movement);
             let alternative_threat = _search(&tmp_board, depth, prune);
             
@@ -132,8 +132,8 @@ fn intercept(board: &Board, threat: &Movement) -> Vec<Position> {
     
     let mut ducks = Vec::<Position>::new();
 
-    if board.get_square(threat.duck).is_none() {
-        ducks.push(threat.duck);
+    if board.get_square(threat.duck_target).is_none() {
+        ducks.push(threat.duck_target);
     }
     
     if let Some(duck_pos) = duck {
@@ -179,11 +179,33 @@ fn intercept_slide(board: &Board, movement: &Movement) -> Option<Position> {
     }
 }
 
+pub fn perft(board: &Board, depth: usize) -> usize {
+    if depth == 0 {
+        return 1;
+    }
+
+    let mut nodes = 0;
+
+    for movement in Movement::avaliable_moves(board, false) {
+        let tmp_board = board.copy_movement(movement);
+        nodes += perft(&tmp_board, depth-1)
+    }
+    
+    nodes
+}
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::pieces::Position;
+
+    #[test]
+    fn test_perft() {
+        // https://www.chessprogramming.org/Perft_Results
+        let nodes = perft(&Board::arranged(), 3);    
+        assert!(nodes == 8902);
+    }
 
     #[test]
     fn test_obvious() {
@@ -230,7 +252,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(4, 2));
         assert_eq!(best_move.target, Position(5, 1));
-        assert_eq!(best_move.duck, Position(7, 1));
+        assert_eq!(best_move.duck_target, Position(7, 1));
     }
 
     #[test]
@@ -259,7 +281,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(3, 5));
         assert_eq!(best_move.target, Position(7, 1));
-        assert_eq!(best_move.duck, Position(7, 0));
+        assert_eq!(best_move.duck_target, Position(7, 0));
     }
 
     #[test]
@@ -288,7 +310,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(6, 4));
         assert_eq!(best_move.target, Position(5, 5));
-        assert_eq!(best_move.duck, Position(5, 7));
+        assert_eq!(best_move.duck_target, Position(5, 7));
     }
 
     #[test]
@@ -303,7 +325,7 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(3, 6));
         assert_eq!(best_move.target, Position(2, 5));
-        assert_eq!(best_move.duck, Position(1, 6));
+        assert_eq!(best_move.duck_target, Position(1, 6));
     }
 
     #[test]
@@ -318,6 +340,6 @@ mod tests {
 
         assert_eq!(best_move.origin, Position(5, 5));
         assert_eq!(best_move.target, Position(7, 4));
-        assert_eq!(best_move.duck, Position(3, 6));
+        assert_eq!(best_move.duck_target, Position(3, 6));
     }
 }
