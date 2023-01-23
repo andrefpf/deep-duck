@@ -108,46 +108,14 @@ fn _color_decode(board: &mut Board, notation_part: &str) {
 }
 
 fn _castle_encode(board: &Board) -> String {
-    let mut notation = String::new();
-    let no_castle = !(board.white_castle.short || board.white_castle.long || board.black_castle.short || board.black_castle.long);
-
-    if no_castle {
-        notation.push('-');
-        return notation;
-    }
-
-    if board.white_castle.short {
-        notation.push('K')
-    }
-    if board.white_castle.long {
-        notation.push('Q')
-    }
-    if board.black_castle.short {
-        notation.push('k')
-    }
-    if board.black_castle.short {
-        notation.push('q')
-    }
-
-    notation
+    return String::from("-");
 }
 
 // fn _castle_decode(board: &mut Board, notation_part: &str) {
 // }
 
 fn _en_passant_encode(board: &Board) -> String {
-    if !board.en_passant {
-        return String::from("-");
-    }
-
-    if let Some(movement) = board.last_move {
-        let indexes = "abcdefgh";
-        if let Some(char_index) = indexes.chars().nth(movement.target.0 as usize) {
-            return format!("{}{}", char_index, movement.target.1 + 1);
-        }
-    }
-
-    String::from("-")
+    return String::from("-");
 }
 
 // fn _en_passant_decode(board: &mut Board, notation_part: &str) {

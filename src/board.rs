@@ -18,20 +18,7 @@ pub struct Board {
     data: [Option<Piece>; 64],
     pub duck: Option<Position>,
     pub move_counter: usize,
-    pub last_move: Option<Movement>,
-    pub en_passant: bool,
     pub active_color: Color,
-    pub white_castle: Castle,
-    pub black_castle: Castle,
-}
-
-impl Castle {
-    fn new() -> Self {
-        Castle {
-            short: true,
-            long: true,
-        }
-    }
 }
 
 impl Board {
@@ -40,11 +27,7 @@ impl Board {
             data: [None; 64],
             duck: None,
             move_counter: 0,
-            last_move: None,
-            en_passant: false,
             active_color: Color::White,
-            white_castle: Castle::new(),
-            black_castle: Castle::new(),
         }
     }
 
