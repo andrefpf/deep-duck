@@ -43,7 +43,7 @@ fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
 
     let mut best = Evaluation { movement: None, score:  -i32::MAX };
     let mut prune = prune;
-    let mut simple_movements = Movement::avaliable_moves(board, false);
+    let mut simple_movements = Movement::avaliable_moves(board);
     simple_movements.sort_by_cached_key(|x| -estimate_movement(x));
 
     if simple_movements.is_empty() {
@@ -74,7 +74,7 @@ fn _evaluate(board: &Board) -> Evaluation {
 }
 
 fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) -> Evaluation {
-    let mut movement = movement;
+    let mut best = movement;
     let mut tmp_board = board.copy_movement(movement);
     let mut threat = _search(&tmp_board, depth, prune);
 
@@ -86,13 +86,13 @@ fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) ->
             
             if alternative_threat.score < threat.score {
                 threat = alternative_threat;
-                movement = alternative_movement;
+                best = alternative_movement;
             }
         }
     }
 
     Evaluation {
-        movement: Some(movement),
+        movement: Some(best),
         score: -threat.score,
     }
 }
@@ -179,33 +179,10 @@ fn intercept_slide(board: &Board, movement: &Movement) -> Option<Position> {
     }
 }
 
-pub fn perft(board: &Board, depth: usize) -> usize {
-    if depth == 0 {
-        return 1;
-    }
-
-    let mut nodes = 0;
-
-    for movement in Movement::avaliable_moves(board, false) {
-        let tmp_board = board.copy_movement(movement);
-        nodes += perft(&tmp_board, depth-1)
-    }
-    
-    nodes
-}
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::pieces::Position;
-
-    #[test]
-    fn test_perft() {
-        // https://www.chessprogramming.org/Perft_Results
-        let nodes = perft(&Board::arranged(), 3);    
-        assert!(nodes == 8902);
-    }
 
     #[test]
     fn test_obvious() {

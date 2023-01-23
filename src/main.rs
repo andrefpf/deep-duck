@@ -7,7 +7,7 @@ mod evaluation;
 
 use crate::board::Board;
 use crate::engine::search;
-use crate::engine::perft;
+use crate::movements::perft;
 use std::time::Instant;
 use std::io::{stdin,stdout,Write};
 
