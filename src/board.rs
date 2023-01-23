@@ -106,15 +106,13 @@ impl Board {
 
         if let Some(captured) = movement.captured {
             self.set_square(captured);
-            // let piece = Piece {pos:movement.target, kind:captured.kind, color:movement.color.invert()};
         }
 
-        // if let Some(kind) = movement.promotion {
-        //     if let Some(mut piece) = self.get_square(movement.target) {
-        //         piece.kind = kind;
-        //         self.set_square(piece);
-        //     }
-        // }
+        if movement.promotion.is_some() {
+            let mut piece = self.get_square(movement.target).unwrap();
+            piece.kind = PieceKind::Pawn;
+            self.set_square(piece);
+        }
     }
 
     pub fn copy_movement(&self, movement: Movement) -> Self {
