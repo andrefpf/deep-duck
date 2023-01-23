@@ -107,15 +107,15 @@ fn _color_decode(board: &mut Board, notation_part: &str) {
     }
 }
 
-fn _castle_encode(board: &Board) -> String {
-    return String::from("-");
+fn _castle_encode(_board: &Board) -> String {
+    String::from("-")
 }
 
 // fn _castle_decode(board: &mut Board, notation_part: &str) {
 // }
 
-fn _en_passant_encode(board: &Board) -> String {
-    return String::from("-");
+fn _en_passant_encode(_board: &Board) -> String {
+    String::from("-")
 }
 
 // fn _en_passant_decode(board: &mut Board, notation_part: &str) {

@@ -287,6 +287,8 @@ impl Movement {
     }
 }
 
+
+#[allow(dead_code)]
 pub fn perft(board: &mut Board, depth: usize) -> usize {
     if depth == 0 {
         return 1;

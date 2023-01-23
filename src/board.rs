@@ -98,6 +98,7 @@ impl Board {
         }
     }
 
+    #[allow(dead_code)]
     pub fn unmake_movement(&mut self, movement: Movement) {
         self.update_color();
         self.place_duck(movement.duck_origin);

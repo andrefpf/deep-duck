@@ -7,7 +7,6 @@ mod evaluation;
 
 use crate::board::Board;
 use crate::engine::search;
-use crate::movements::perft;
 use std::time::Instant;
 use std::io::{stdin,stdout,Write};
 
@@ -54,8 +53,5 @@ fn cli() {
 }
 
 fn main() {
-    // cli()
-    let mut board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ");
-
-    dbg!(perft(&board, 3));
+    cli()
 }
