@@ -132,7 +132,7 @@ fn estimate_movement(movement: &Movement) -> i32 {
 fn intercept(board: &Board, threat: &Movement) -> Vec<Position> {
     let duck = match threat.moved {
         PieceKind::Knight | PieceKind::King | PieceKind::Pawn => {
-            intercept_jump(threat)
+            intercept_jump(board, threat)
         },
         
         PieceKind::Rook | PieceKind::Bishop | PieceKind::Queen => {
@@ -157,8 +157,8 @@ fn intercept(board: &Board, threat: &Movement) -> Vec<Position> {
     ducks
 }
 
-fn intercept_jump(movement: &Movement) -> Option<Position> {
-    if movement.captured.is_none() {
+fn intercept_jump(board: &Board, movement: &Movement) -> Option<Position> {
+    if board.get_square(movement.target).is_none() {
         Some(movement.target)
     } else {
         None

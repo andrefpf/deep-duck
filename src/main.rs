@@ -57,7 +57,7 @@ fn cli() {
 //     let start = Instant::now();
 
 //     let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-//     search(&board, 4);
+//     search(&board, 6);
 
 //     let duration = start.elapsed();
 //     println!("Time elapsed: {:?}", duration);
