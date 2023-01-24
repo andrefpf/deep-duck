@@ -41,7 +41,7 @@ In the future you will play it [here](https://andrefpf.github.io/duckmate/), but
 
 In the meantime you can compile and run the CLI, then put in the FEN of your chess position. The engine will show the position and say the best the best movement it finds.
 
-To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code.
+To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code. To be fair it still is a pain to make it work, as you can see in [this example](examples/game.md), but it is still usefull to find some tactics.
 
     Your FEN position: 8/3*4/8/8/8/4K3/8/7k w - - 0 1 q
     8                 
