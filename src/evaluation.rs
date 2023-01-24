@@ -10,7 +10,7 @@ static PAWN_TABLE: [i32; 64] = [
 10, 10, 20, 30, 30, 20, 10, 10,
  5,  5, 10, 25, 25, 10,  5,  5,
  0,  0,  0, 20, 20,  0,  0,  0,
- 5, -5,-10,  0,  0,-10, -5,  5,
+ 5, 10,-10,  0,  0,-10, 10,  5,
  5, 10, 10,-20,-20, 10, 10,  5,
  0,  0,  0,  0,  0,  0,  0,  0,
 ];
@@ -102,7 +102,7 @@ pub fn square_value(piece: &Piece) -> i32 {
 
 pub fn position_value(piece: &Piece) -> i32 {
     let table = piece_table(piece.kind);
-    let mut index = piece.pos.0 + 8 * piece.pos.1;
+    let mut index = piece.pos.0 + 8 * (7 - piece.pos.1);
 
     if let Color::Black = piece.color {
         index = 63 - index;
