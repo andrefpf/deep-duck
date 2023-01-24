@@ -13,9 +13,9 @@ When I found this [game](https://www.chess.com/terms/duck-chess) and played it [
 ## Is it a good chess engine?
 Yeah, it already is much better than me, and it is already stronger than the stockfish engine used in [Pychess](https://www.pychess.org/). Here you can see two games where Deep Duck **CRUSHED** stockfish as white and as black.
 
-As White: https://www.pychess.org/KjgWhlfk
+As White: https://www.pychess.org/KjgWhlfk?ply=1
 
-As Black: https://www.pychess.org/rAiY9Qzd?ply=116
+As Black: https://www.pychess.org/rAiY9Qzd?ply=1
 
 ## Nice, how it works? 
 This was implemented in Rust using the old fashioned way: 
