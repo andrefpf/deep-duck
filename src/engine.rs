@@ -4,6 +4,7 @@ use crate::board::Board;
 use crate::pieces::PieceKind;
 use crate::pieces::Position;
 use crate::movements::Movement;
+use crate::cache::ZobristCache;
 use crate::evaluation::{count_centipawns, piece_value};
 
 
@@ -14,9 +15,10 @@ struct Prune {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Evaluation {
+pub struct Evaluation {
     movement: Option<Movement>,
     score: i32,
+    depth: usize,
 }
 
 impl Prune {
@@ -33,36 +35,46 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
         alpha: -i32::MAX,
         beta: i32::MAX,
     };
-    _search(board, depth, prune).movement
+    let mut cache = ZobristCache::new();
+    _search(board, depth, prune, &mut cache).movement
 }
 
-fn _search(board: &Board, depth: usize, prune: Prune) -> Evaluation {
+fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) -> Evaluation {
     if depth == 0 {
         return _evaluate(board);
     }
 
-    let mut best = Evaluation { movement: None, score:  -i32::MAX };
+    if let Some(evaluation) = cache.get(board) {
+        if evaluation.score >= prune.beta && evaluation.depth >= depth {
+            return Evaluation{movement: evaluation.movement, score: prune.beta, depth};
+        }
+    }
+
+    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth};
     let mut prune = prune;
     let mut simple_movements = Movement::avaliable_moves(board);
     simple_movements.sort_by_cached_key(|x| -estimate_movement(x));
-
+    
     if simple_movements.is_empty() {
         return _evaluate(board);
     }
 
     for movement in simple_movements {
-        let evaluation = duck_search(board, depth-1, prune.invert(), movement);
+        let evaluation = duck_search(board, depth-1, prune.invert(), cache, movement);
 
         if evaluation.score >= prune.beta {
-            return Evaluation{movement: evaluation.movement, score: prune.beta};
+            best = Evaluation{movement: evaluation.movement, score: prune.beta, depth};
+            cache.insert(board, best);
+            return best;
         }
 
         if evaluation.score > prune.alpha {
             prune.alpha = evaluation.score;
             best = evaluation;
+            cache.insert(board, best);
         }
     }
-
+    
     best
 }
 
@@ -70,19 +82,20 @@ fn _evaluate(board: &Board) -> Evaluation {
     Evaluation {
         movement: None,
         score: count_centipawns(board),
+        depth: 0,
     }
 }
 
-fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) -> Evaluation {
+fn duck_search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache, movement: Movement) -> Evaluation {
     let mut best = movement;
     let mut tmp_board = board.copy_movement(movement);
-    let mut threat = _search(&tmp_board, depth, prune);
+    let mut threat = _search(&tmp_board, depth, prune, cache);
 
     if let Some(reaction) = threat.movement {
         for duck_target in intercept(board, &reaction) {
             let alternative_movement = Movement {duck_target, ..movement};
             tmp_board = board.copy_movement(alternative_movement);
-            let alternative_threat = _search(&tmp_board, depth, prune);
+            let alternative_threat = _search(&tmp_board, depth, prune, cache);
             
             if alternative_threat.score < threat.score {
                 threat = alternative_threat;
@@ -94,6 +107,7 @@ fn duck_search(board: &Board, depth: usize, prune: Prune, movement: Movement) ->
     Evaluation {
         movement: Some(best),
         score: -threat.score,
+        depth
     }
 }
 
@@ -318,5 +332,20 @@ mod tests {
         assert_eq!(best_move.origin, Position(5, 5));
         assert_eq!(best_move.target, Position(7, 4));
         assert_eq!(best_move.duck_target, Position(3, 6));
+    }
+
+    #[test]
+    fn test_ducktics_8() {
+        let board = Board::from_fen("r3kb1r/pp1bpp1p/2np2p1/2pN4/4P3/3PBB1P/PqPQ1PP1/R*2K2R w KQkq - 0 1");
+        let best_move = dbg!(search(&board, 4));
+
+        if best_move.is_none() {
+            panic!("No moves found");
+        }
+        let best_move = best_move.unwrap();
+
+        assert_eq!(best_move.origin, Position(3, 4));
+        assert_eq!(best_move.target, Position(2, 6));
+        assert_eq!(best_move.duck_target, Position(3, 7));
     }
 }

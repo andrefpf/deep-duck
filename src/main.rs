@@ -4,6 +4,7 @@ mod movements;
 mod engine;
 mod fen;
 mod evaluation;
+mod cache;
 
 use crate::board::Board;
 use crate::engine::search;
@@ -35,7 +36,7 @@ fn cli() {
 
         let start = Instant::now();
         let mut board = Board::from_fen(&fen);
-        let best_move = search(&board, 5);
+        let best_move = search(&board, 6);
         let duration = start.elapsed();
         
         
@@ -52,6 +53,17 @@ fn cli() {
     }
 }
 
+// fn test() {
+//     let start = Instant::now();
+
+//     let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+//     search(&board, 4);
+
+//     let duration = start.elapsed();
+//     println!("Time elapsed: {:?}", duration);
+// }
+
 fn main() {
     cli()
+    // test()
 }
