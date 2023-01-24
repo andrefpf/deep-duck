@@ -11,8 +11,11 @@ Deep duck is an engine to evaluate and sugest moves for the duck chess variant.
 When I found this [game](https://www.chess.com/terms/duck-chess) and played it [online](https://www.chess.com/variants/duck-chess), I quickly found that I was pretty bad at it. Then I thought `Well, I will play against some bots and then come back here`. To my surprise bots didn't existed yet, so I made my own.
 
 ## Is it a good chess engine?
-Yeah, it already is much better than me. [Here](https://www.pychess.org/4fKk39R2?ply=72) you can see a game it played against Pychess strongest stockfish engine, **AND DEEP DUCK WON!**
-To be fair, the stockfish duck evaluation isn't fully finished yet. But common, Deep Duck also isn't finished.
+Yeah, it already is much better than me. It is already stronger than the stockfish engine used in [Pychess](https://www.pychess.org/). Here you can see two games where Deep Duck **CRUSHED** stockfish as white and as black.
+
+As White: https://www.pychess.org/KjgWhlfk
+
+As Black: https://www.pychess.org/rAiY9Qzd?ply=116
 
 ## Nice, how it works? 
 This was implemented in Rust using the old fashioned way: 
