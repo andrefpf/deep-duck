@@ -8,14 +8,22 @@
 Deep duck is an engine to evaluate and sugest moves for the duck chess variant.
 
 ## Why?
-When I found this [game](https://www.chess.com/terms/duck-chess) and played it [online](https://www.chess.com/variants/duck-chess), I quickly found that I was pretty bad at it. Then I thought `Well, I will play against some bots and then come back here`. To my surprise bots didn't existed yet, so I made my own.
+When I found this [game](https://www.chess.com/terms/duck-chess) and played it [online](https://www.chess.com/variants/duck-chess), I quickly discovered that I was pretty bad at it. Then I thought `"Well, I will play against some bots and then come back here"`. To my surprise bots didn't existed yet, so I made my own.
 
 ## Is it a good chess engine?
-Yeah, it already is much better than me, and it is already stronger than the stockfish engine used in [Pychess](https://www.pychess.org/). Here you can see two games where Deep Duck **CRUSHED** stockfish as white and as black.
+Yeah, it already is much better than me (not that hard), and it is already stronger than the stockfish engine used in [Pychess](https://www.pychess.org/). Here you can see two games played between Duck Chess and Fairy Stockfish.
 
-As White: https://www.pychess.org/KjgWhlfk?ply=1
+**SPOILER ALERT:** Deep duck won both!
 
-As Black: https://www.pychess.org/rAiY9Qzd?ply=1
+### As white
+<img width="400" src="https://user-images.githubusercontent.com/48336152/214456234-71d418fa-1140-495a-a151-a9f43580fe9a.gif">
+
+[see more](https://www.pychess.org/KjgWhlfk?ply=1)
+
+### As black
+<img width="400" src="https://user-images.githubusercontent.com/48336152/214456696-4c4863b2-415f-4383-8e43-d9aacb1ee4ea.gif">
+
+[see more](https://www.pychess.org/rAiY9Qzd?ply=1)
 
 ## Nice, how it works? 
 This was implemented in Rust using the old fashioned way: 
@@ -41,20 +49,11 @@ In the future you will play it [here](https://andrefpf.github.io/duckmate/), but
 
 In the meantime you can compile and run the CLI, then put in the FEN of your chess position. The engine will show the position and say the best the best movement it finds.
 
-To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code. To be fair it still is a pain to make it work, as you can see in [this example](examples/game.md), but it is still usefull to find some tactics.
+To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code.
+Here is an example of how you can use Deep Duck to evaluate a position for your game.
 
-    Your FEN position: 8/3*4/8/8/8/4K3/8/7k w - - 0 1 q
-    8                 
-    7                 
-    6                 
-    5                 
-    4                 
-    3                 
-    2           ♚   🐤 
-    1               ♔ 
-      A B C D E F G H
-    Move: E3 to F2 and duck to H2
-    Time elapsed: 31.667347ms
+<a href="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v" target="_blank">
+<img width=600 src="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v.svg" /></a>
 
 ## How can I compile it?
 You will need Cargo. Then run this in your terminal: 
