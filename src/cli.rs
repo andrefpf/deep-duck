@@ -7,7 +7,7 @@ use crate::engine::evaluate;
 pub enum Command {
     Help,
     Board,
-    Restart,
+    Rearange,
     Evaluate,
     Sugest,
     Play,
@@ -24,17 +24,26 @@ pub struct App {
     depth: usize,
 }
 
-const HELP_MESSAGE: &str = "
-DEEP DUCK
-versão: 0.1.0
+const HELP_MESSAGE: &str = 
+"                  __
+    DEEP DUCK   <(o )___
+versão: 0.1.0    (     /
+         2023     `---'   
+                
 
 These are the avaliable commands:
 
-    exit \t\t Stop this
-    help \t\t  Shows this help message
-    board \t\t Shown the current board
-    fen [fen notation] \t\t Loads another board
-    depth [number] \t\t Updates the maximum depth
+    help            Shows this help message
+    board           Shown the current board
+    exit            Exits the engine
+
+    rearange        Rearange the board to the initial position
+    fen [notation]  Loads loads the board acording to the given FEN notation 
+    depth [number]  Sets the maximum depth to evaluate
+
+    evaluate        Evaluates the position and shows a pontuation
+    sugest          The computer sugests the best movement
+    play            The computer plays the best movement in the current board
 ";
 
 impl App {
@@ -49,7 +58,7 @@ impl App {
         match command {
             Command::Help => self.print_help(),
             Command::Board => self.print_board(),
-            Command::Restart => self.restart(),
+            Command::Rearange => self.rearange(),
             Command::Evaluate => self.show_evaluation(),
             Command::Sugest => self.sugest_movement(),
             Command::Play => self.computer_move(),
@@ -61,9 +70,8 @@ impl App {
         }
     }
 
-    fn restart(&mut self) {
-        let tmp = Self::new();
-        self.depth = tmp.depth;
+    fn rearange(&mut self) {
+        self.board = Board::arranged();
     }
 
     fn print_help(&self) {
@@ -155,7 +163,7 @@ impl Command {
             "exit" => Command::Exit,
             "help" => Command::Help,
             "board" => Command::Board,
-            "restart" => Command::Restart,
+            "rearange" => Command::Rearange,
             "evaluate" => Command::Evaluate,
             "sugest" => Command::Sugest,
             "play" => Command::Play,
