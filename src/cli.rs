@@ -24,7 +24,7 @@ pub struct App {
     depth: usize,
 }
 
-const HELP_MESSAGE: &'static str = "
+const HELP_MESSAGE: &str = "
 DEEP DUCK
 versão: 0.1.0
 

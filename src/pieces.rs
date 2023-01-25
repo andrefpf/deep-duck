@@ -65,8 +65,9 @@ impl Piece {
 #[allow(dead_code)]
 impl Position {
     pub fn from_str(input: String) -> Option<Self> {
-        let file = input.chars().nth(0);
-        let rank = input.chars().nth(1);
+        let mut chars = input.chars();
+        let file = chars.next();
+        let rank = chars.next();
 
         let x = match rank {
             Some('A') => 0,

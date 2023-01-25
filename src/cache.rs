@@ -1,4 +1,4 @@
-use rand;
+
 use std::collections::HashMap;
 
 use crate::board::Board;
@@ -16,12 +16,12 @@ pub struct ZobristCache {
 
 impl ZobristCache {
     pub fn new() -> Self {
-        let cache = ZobristCache {
+        
+        
+        ZobristCache {
             random_values: [(); ZOBRIST_SIZE].map(|_| rand::random()),  // random values for every position
             data: HashMap::new(),
-        };
-        
-        cache
+        }
     }
 
     pub fn insert(&mut self, board: &Board, eval: Evaluation) {
