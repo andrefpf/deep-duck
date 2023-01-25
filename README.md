@@ -49,20 +49,11 @@ In the future you will play it [here](https://andrefpf.github.io/duckmate/), but
 
 In the meantime you can compile and run the CLI, then put in the FEN of your chess position. The engine will show the position and say the best the best movement it finds.
 
-To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code. To be fair it still is a pain to make it work, as you can see in [this example](examples/game.md), but it is still usefull to find some tactics.
+To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code.
+Here is an example of how you can use Deep Duck to evaluate a position for your game.
 
-    Your FEN position: 8/3*4/8/8/8/4K3/8/7k w - - 0 1 q
-    8                 
-    7                 
-    6                 
-    5                 
-    4                 
-    3                 
-    2           ♚   🐤 
-    1               ♔ 
-      A B C D E F G H
-    Move: E3 to F2 and duck to H2
-    Time elapsed: 31.667347ms
+<a href="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v" target="_blank">
+<img width=600 src="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v.svg" /></a>
 
 ## How can I compile it?
 You will need Cargo. Then run this in your terminal: 
