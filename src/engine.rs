@@ -39,6 +39,15 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     _search(board, depth, prune, &mut cache).movement
 }
 
+pub fn evaluate(board: &Board, depth: usize) -> i32 {
+    let prune = Prune {
+        alpha: -i32::MAX,
+        beta: i32::MAX,
+    };
+    let mut cache = ZobristCache::new();
+    _search(board, depth, prune, &mut cache).score
+}
+
 fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) -> Evaluation {
     if depth == 0 {
         return _evaluate(board);

@@ -62,6 +62,40 @@ impl Piece {
     }
 }
 
+#[allow(dead_code)]
+impl Position {
+    pub fn from_str(input: String) -> Option<Self> {
+        let file = input.chars().nth(0);
+        let rank = input.chars().nth(1);
+
+        let x = match rank {
+            Some('A') => 0,
+            Some('B') => 1,
+            Some('C') => 2,
+            Some('D') => 3,
+            Some('E') => 4,
+            Some('F') => 5,
+            Some('G') => 6,
+            Some('H') => 7,
+            _ => return None,
+        };
+
+        let y = match file {
+            Some('0') => 0,
+            Some('1') => 1,
+            Some('2') => 2,
+            Some('3') => 3,
+            Some('4') => 4,
+            Some('5') => 5,
+            Some('6') => 6,
+            Some('7') => 7,
+            _ => return None,
+        };
+
+        Some(Position(x, y))
+    }
+}
+
 impl fmt::Debug for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let list = "ABCDEFGH";
