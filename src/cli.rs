@@ -1,7 +1,12 @@
 use crate::board::Board;
+use crate::pieces::Position;
 use crate::pieces::Color;
+use crate::movements::Movement;
 use crate::engine::search;
 use crate::engine::evaluate;
+use crate::evaluation::piece_value;
+use crate::pieces::PieceKind;
+use colored::Colorize;
 
 #[derive(Debug)]
 pub enum Command {
@@ -13,6 +18,8 @@ pub enum Command {
     Play,
     Fen(String),
     Depth(usize),
+    Move(String),
+    Analyze(String),
     Exit,
     Clear,
     Empty,
@@ -27,7 +34,7 @@ pub struct App {
 const HELP_MESSAGE: &str = 
 "                  __
     DEEP DUCK   <(o )___
-versão: 0.1.0    (     /
+versão: 0.2.0    (     /
          2023     `---'   
                 
 
@@ -62,12 +69,101 @@ impl App {
             Command::Evaluate => self.show_evaluation(),
             Command::Sugest => self.sugest_movement(),
             Command::Play => self.computer_move(),
-            Command::Fen(fen) => self.load_board(fen),
+            Command::Fen(fen) => self.load_board(&fen),
+            Command::Move(coords) => self.try_movement(&coords),
+            Command::Analyze(coords) => self.analyze_movement(&coords),
             Command::Depth(depth) => self.change_depth(depth),
-            Command::Clear => self.clear_terminal(),
-            Command::Invalid => self.invalid(),
+            Command::Clear => App::clear_terminal(),
+            Command::Invalid => App::invalid(),
             Command::Exit | Command::Empty => (),
         }
+    }
+
+    fn decode_positions(coords: &str) -> Option<(Position, Position, Position)> {
+        let mut splited = coords.split(' ');
+
+        let origin = match splited.next() {
+            Some(coord) => Position::from_str(coord),
+            None => None
+        };
+
+        let target = match splited.next() {
+            Some(coord) => Position::from_str(coord),
+            None => None
+        };
+
+        let duck = match splited.next() {
+            Some(coord) => Position::from_str(coord),
+            None => None
+        };
+
+        if let (Some(origin), Some(target), Some(duck)) = (origin, target, duck) {
+            Some((origin, target, duck))
+        } else {
+            None
+        }
+    }
+
+    fn try_movement(&mut self, coords: &str) {
+        let decoded = App::decode_positions(&coords);
+
+        if decoded.is_none() {
+            App::invalid();
+            return;
+        }
+
+        let (origin, target, duck) = decoded.unwrap();
+
+        if let Some(movement) = Movement::try_movement(&self.board, origin, target, duck) {
+            self.board.make_movement(movement);
+            println!("{:?}", self.board);    
+            println!("You moved: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
+        } else {
+            App::invalid_movement();
+        }
+    }
+
+    fn analyze_movement(&mut self, coords: &str) {
+        let decoded = App::decode_positions(&coords);
+
+        if decoded.is_none() {
+            App::invalid();
+            return;
+        }
+
+        let (origin, target, duck) = decoded.unwrap();
+
+        if let Some(movement) = Movement::try_movement(&self.board, origin, target, duck) {
+            let tmp_board = self.board.copy_movement(movement);
+            let done = -evaluate(&tmp_board, self.depth-1);
+            let expected = evaluate(&self.board, self.depth);
+            App::compare_scores(done, expected)
+        } else {
+            App::invalid_movement();
+        }
+    }
+
+    fn compare_scores(done: i32, expected: i32) {
+        let diff = expected - done;
+
+        if (expected >= piece_value(PieceKind::King))
+            && (done < piece_value(PieceKind::King)
+            && (done > 250))
+        {
+            println!("{} Missed Win", ":(".yellow().bold());
+            return;
+        }
+
+        match diff {
+            -20 ..= 20 => println!("{} Excelent", ":D".green().bold()),
+            -50 ..= 50 => println!("{} :) Good", ":)".green()),
+            -250 ..= 250 => println!("{} Inaccuracy", "!?".yellow()),
+            _ => println!("{} BLUNDER", "??".red().bold()),
+        }
+    }
+
+    fn invalid_movement() {
+        println!("This is not a valid duck chess movement.")
     }
 
     fn rearange(&mut self) {
@@ -89,7 +185,7 @@ impl App {
             _ => 0,
         };
 
-        // this is as cringe but very convenient =)
+        // this is cringe but very convenient =)
         let bar = match score {
             ..= -1_000_000         => "○○○○○○○○○○○○○○○○○○○○",
             (-999_999 ..= -1_000)  => "●○○○○○○○○○○○○○○○○○○○",
@@ -103,8 +199,8 @@ impl App {
         };
 
         match score {
-            1_000_000.. => println!("White has a mate"),
-            ..= -1_000_000 => println!("Black has a mate"),
+            1_000_000.. => println!("White have a forced duckmate"),
+            ..= -1_000_000 => println!("Black have a forced duckmate"),
             _ => println!("Centipawns: {}", score/100),
         };
         println!("{}", bar);
@@ -130,8 +226,8 @@ impl App {
         }
     }
 
-    fn load_board(&mut self, fen: String) {
-        self.board = Board::from_fen(&fen);
+    fn load_board(&mut self, fen: &str) {
+        self.board = Board::from_fen(fen);
         println!("{:?}", self.board);
     }
 
@@ -142,11 +238,11 @@ impl App {
         self.depth = depth
     }
 
-    fn clear_terminal(&self) {
+    fn clear_terminal() {
         print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
     }
 
-    fn invalid(&self) {
+    fn invalid() {
         println!("Invalid command. Type help for more info.")
     }
 }
@@ -161,6 +257,7 @@ impl Command {
         match key {
             "" => Command::Empty,
             "exit" => Command::Exit,
+            "clear" => Command::Clear,
             "help" => Command::Help,
             "board" => Command::Board,
             "rearange" => Command::Rearange,
@@ -168,7 +265,8 @@ impl Command {
             "sugest" => Command::Sugest,
             "play" => Command::Play,
             "fen" => Command::Fen(val.to_string()),
-            "clear" => Command::Clear,
+            "move" => Command::Move(val.to_string()),
+            "analyze" => Command::Analyze(val.to_string()),
             "depth" => {
                 if let Ok(number) = val.parse::<usize>() {
                     Command::Depth(number)

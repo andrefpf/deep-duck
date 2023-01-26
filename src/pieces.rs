@@ -64,32 +64,32 @@ impl Piece {
 
 #[allow(dead_code)]
 impl Position {
-    pub fn from_str(input: String) -> Option<Self> {
+    pub fn from_str(input: &str) -> Option<Self> {
         let mut chars = input.chars();
         let file = chars.next();
         let rank = chars.next();
 
-        let x = match rank {
-            Some('A') => 0,
-            Some('B') => 1,
-            Some('C') => 2,
-            Some('D') => 3,
-            Some('E') => 4,
-            Some('F') => 5,
-            Some('G') => 6,
-            Some('H') => 7,
+        let x = match file {
+            Some('A') | Some('a') => 0,
+            Some('B') | Some('b') => 1,
+            Some('C') | Some('c') => 2,
+            Some('D') | Some('d') => 3,
+            Some('E') | Some('e') => 4,
+            Some('F') | Some('f') => 5,
+            Some('G') | Some('g') => 6,
+            Some('H') | Some('h') => 7,
             _ => return None,
         };
 
-        let y = match file {
-            Some('0') => 0,
-            Some('1') => 1,
-            Some('2') => 2,
-            Some('3') => 3,
-            Some('4') => 4,
-            Some('5') => 5,
-            Some('6') => 6,
-            Some('7') => 7,
+        let y = match rank {
+            Some('1') => 0,
+            Some('2') => 1,
+            Some('3') => 2,
+            Some('4') => 3,
+            Some('5') => 4,
+            Some('6') => 5,
+            Some('7') => 6,
+            Some('8') => 7,
             _ => return None,
         };
 

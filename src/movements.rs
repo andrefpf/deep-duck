@@ -70,6 +70,37 @@ impl Movement {
         Some(movement)
     }
 
+    pub fn try_movement(board: &Board, origin: Position, target: Position, duck: Position) -> Option<Self> {
+        let origin_piece = match board.get_square(origin) {
+            Some(piece) => piece,
+            None => return None,
+        };
+        
+        if (duck != origin) && board.get_square(duck).is_some() {
+            return None;
+        }
+
+        if duck == target {
+            return None;
+        }
+
+        if origin_piece.color != board.active_color {
+            return None;
+        }
+
+        for movement in Movement::piece_moves(board, origin) {
+            if movement.origin == origin && movement.target == target {
+                let (x0, y0, x1, y1) = (origin.0, origin.1, target.0, target.1);
+                if let Some(mut movement) = Movement::from_coords(board, x0, y0, x1, y1) {
+                    movement.duck_target = duck;
+                    return Some(movement);
+                }
+            }
+        }
+        
+        None
+    }
+
     pub fn avaliable_moves(board: &Board) -> Vec::<Self>{
         let mut movements = Vec::<Self>::with_capacity(140);
         let mut king_found = false;
