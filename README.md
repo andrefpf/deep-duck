@@ -52,9 +52,9 @@ In the meantime you can compile and run the CLI, then put in the FEN of your che
 To help you with the FEN stuff use this [nice editor](https://www.pychess.org/editor/duck) from pychess, then copy and paste the FEN code.
 Here is an example of how you can use Deep Duck to evaluate a position for your game.
 
-<a href="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v" target="_blank">
-<img width=600 src="https://asciinema.org/a/OFZCXZ1pbIXUTJ2qtm7iRu16v.svg" /></a>
-
+<a href="https://asciinema.org/a/sYA03LaN8LYyNNDTwL7EMSP8H" target="_blank">
+<img width=600 src="https://asciinema.org/a/sYA03LaN8LYyNNDTwL7EMSP8H.svg" /></a>
+  
 ## How can I compile it?
 You will need Cargo. Then run this in your terminal: 
 
