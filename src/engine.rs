@@ -30,11 +30,13 @@ impl Prune {
     }
 }
 
+#[allow(dead_code)]
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     let mut cache = ZobristCache::new();
     search_cached(board, depth, &mut cache)
 }
 
+#[allow(dead_code)]
 pub fn evaluate(board: &Board, depth: usize) -> Evaluation {
     let mut cache = ZobristCache::new();
     evaluate_cached(board, depth, &mut cache)
