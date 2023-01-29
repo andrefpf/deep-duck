@@ -11,6 +11,7 @@ const ZOBRIST_SIZE: usize = 64*7*3;
 
 pub struct ZobristCache {
     random_values: [u32; ZOBRIST_SIZE],
+    color_value: u32,
     data: HashMap<u32, Evaluation>,
 }
 
@@ -20,6 +21,7 @@ impl ZobristCache {
         
         ZobristCache {
             random_values: [(); ZOBRIST_SIZE].map(|_| rand::random()),  // random values for every position
+            color_value: rand::random(),
             data: HashMap::new(),
         }
     }
@@ -37,6 +39,10 @@ impl ZobristCache {
 
         for i in board.ocuppied_squares().map(|x| self.zobrist_value(*x)) {
             hash ^= i;
+        }
+
+        if let Color::White = board.active_color {
+            hash ^= self.color_value;
         }
 
         hash

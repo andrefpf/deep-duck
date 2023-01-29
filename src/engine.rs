@@ -31,36 +31,48 @@ impl Prune {
 }
 
 pub fn search(board: &Board, depth: usize) -> Option<Movement> {
-    let prune = Prune {
-        alpha: -i32::MAX,
-        beta: i32::MAX,
-    };
     let mut cache = ZobristCache::new();
-    _search(board, depth, prune, &mut cache).movement
+    search_cached(board, depth, &mut cache)
 }
 
 pub fn evaluate(board: &Board, depth: usize) -> Evaluation {
+    let mut cache = ZobristCache::new();
+    evaluate_cached(board, depth, &mut cache)
+}
+
+pub fn search_cached(board: &Board, depth: usize, cache: &mut ZobristCache) -> Option<Movement> {
     let prune = Prune {
         alpha: -i32::MAX,
         beta: i32::MAX,
     };
-    let mut cache = ZobristCache::new();
-    _search(board, depth, prune, &mut cache)
+    _search(board, depth, prune, cache).movement
+}
+
+pub fn evaluate_cached(board: &Board, depth: usize, cache: &mut ZobristCache) -> Evaluation {
+    let prune = Prune {
+        alpha: -i32::MAX,
+        beta: i32::MAX,
+    };
+    _search(board, depth, prune, cache)
 }
 
 fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) -> Evaluation {
     if depth == 0 {
         return _evaluate(board);
     }
+    
+    let mut prune = prune;
+    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth:0};
 
     if let Some(evaluation) = cache.get(board) {
         if evaluation.score >= prune.beta && evaluation.depth >= depth {
             return Evaluation{movement: evaluation.movement, score: prune.beta, depth};
         }
+
+        prune.alpha = evaluation.score;        
+        best = evaluation;
     }
 
-    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth:0};
-    let mut prune = prune;
     let mut simple_movements = Movement::avaliable_moves(board);
     simple_movements.sort_by_cached_key(|x| -estimate_movement(x));
     

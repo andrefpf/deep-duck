@@ -2,8 +2,8 @@ use crate::board::Board;
 use crate::pieces::Position;
 use crate::pieces::Color;
 use crate::movements::Movement;
-use crate::engine::search;
-use crate::engine::evaluate;
+use crate::cache::ZobristCache;
+use crate::engine::{search_cached, evaluate_cached};
 use crate::evaluation::piece_value;
 use crate::pieces::PieceKind;
 use colored::Colorize;
@@ -29,6 +29,7 @@ pub enum Command {
 
 pub struct App {
     board: Board,
+    cache: ZobristCache,
     depth: usize,
 }
 
@@ -58,6 +59,7 @@ impl App {
     pub fn new() -> Self {
         App {
             board: Board::arranged(),
+            cache: ZobristCache::new(),
             depth: 6,
         }
     }
@@ -136,8 +138,8 @@ impl App {
 
         if let Some(movement) = Movement::try_movement(&self.board, origin, target, duck) {
             let tmp_board = self.board.copy_movement(movement);
-            let done = -evaluate(&tmp_board, self.depth-1).score;
-            let expected = evaluate(&self.board, self.depth).score;
+            let done = -evaluate_cached(&tmp_board, self.depth-1, &mut self.cache).score;
+            let expected = evaluate_cached(&self.board, self.depth, &mut self.cache).score;
             App::compare_scores(done, expected)
         } else {
             App::invalid_movement();
@@ -179,9 +181,9 @@ impl App {
         println!("{:?}", self.board)
     }
 
-    fn show_evaluation(&self) {
+    fn show_evaluation(&mut self) {
         let start = Instant::now();
-        let evaluation = evaluate(&self.board, self.depth);
+        let evaluation = evaluate_cached(&self.board, self.depth, &mut self.cache);
         let duration = start.elapsed();
 
         let score = match self.board.active_color {
@@ -216,8 +218,8 @@ impl App {
         println!("Time elapsed: {:?}", duration);
     }
 
-    fn sugest_movement(&self) {
-        let best_move = search(&self.board, self.depth);
+    fn sugest_movement(&mut self) {
+        let best_move = search_cached(&self.board, self.depth, &mut self.cache);
         if let Some(movement) = best_move {
             println!("Move: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
         } else {
@@ -226,7 +228,7 @@ impl App {
     }
 
     fn computer_move(&mut self) {
-        let best_move = search(&self.board, self.depth);
+        let best_move = search_cached(&self.board, self.depth, &mut self.cache);
         if let Some(movement) = best_move {
             self.board.make_movement(movement);
             println!("{:?}", self.board);
