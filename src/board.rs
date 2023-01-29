@@ -46,6 +46,10 @@ impl Board {
         Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
+    pub fn king_exists(&self, color: Color) -> bool {
+        self.ocuppied_squares().any(|x| x.kind == PieceKind::King && x.color == color)
+    }
+
     pub fn ocuppied_squares(&self) -> Flatten<Iter<Option<Piece>>> {
         self.data.iter().flatten()
     }

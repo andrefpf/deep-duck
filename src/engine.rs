@@ -16,9 +16,9 @@ struct Prune {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Evaluation {
-    movement: Option<Movement>,
-    score: i32,
-    depth: usize,
+    pub movement: Option<Movement>,
+    pub score: i32,
+    pub depth: usize,
 }
 
 impl Prune {
@@ -39,13 +39,13 @@ pub fn search(board: &Board, depth: usize) -> Option<Movement> {
     _search(board, depth, prune, &mut cache).movement
 }
 
-pub fn evaluate(board: &Board, depth: usize) -> i32 {
+pub fn evaluate(board: &Board, depth: usize) -> Evaluation {
     let prune = Prune {
         alpha: -i32::MAX,
         beta: i32::MAX,
     };
     let mut cache = ZobristCache::new();
-    _search(board, depth, prune, &mut cache).score
+    _search(board, depth, prune, &mut cache)
 }
 
 fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) -> Evaluation {
@@ -59,7 +59,7 @@ fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) 
         }
     }
 
-    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth};
+    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth:0};
     let mut prune = prune;
     let mut simple_movements = Movement::avaliable_moves(board);
     simple_movements.sort_by_cached_key(|x| -estimate_movement(x));
@@ -72,18 +72,22 @@ fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) 
         let evaluation = duck_search(board, depth-1, prune.invert(), cache, movement);
 
         if evaluation.score >= prune.beta {
-            best = Evaluation{movement: evaluation.movement, score: prune.beta, depth};
+            best = Evaluation{movement: evaluation.movement, score: prune.beta, depth: evaluation.depth + 1};
             cache.insert(board, best);
-            return best;
+            break;
         }
 
-        if evaluation.score > prune.alpha {
+        let better_score = evaluation.score > prune.alpha;
+        let better_mate = (evaluation.depth < best.depth) && (evaluation.score >= piece_value(PieceKind::King));
+
+        if better_score || better_mate {
             prune.alpha = evaluation.score;
             best = evaluation;
             cache.insert(board, best);
         }
     }
-    
+
+    best.depth += 1;
     best
 }
 
@@ -116,7 +120,7 @@ fn duck_search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCac
     Evaluation {
         movement: Some(best),
         score: -threat.score,
-        depth
+        depth: threat.depth,
     }
 }
 
@@ -356,5 +360,19 @@ mod tests {
         assert_eq!(best_move.origin, Position(3, 4));
         assert_eq!(best_move.target, Position(2, 6));
         assert_eq!(best_move.duck_target, Position(3, 7));
+    }
+
+    #[test]
+    fn shortest_duckmate() {
+        let board = Board::from_fen("k7/2N5/K7/8/5*2/5q2/4P3/8 w - - 0 1");
+        let best_move = dbg!(search(&board, 4));
+
+        if best_move.is_none() {
+            panic!("No moves found");
+        }
+        let best_move = best_move.unwrap();
+
+        assert_eq!(best_move.origin, Position::from_str("C7").unwrap());
+        assert_eq!(best_move.target, Position::from_str("A8").unwrap());
     }
 }

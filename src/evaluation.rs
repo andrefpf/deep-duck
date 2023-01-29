@@ -84,6 +84,14 @@ static DUCK_TABLE: [i32; 64] = [
 
 pub fn count_centipawns(board: &Board) -> i32 {
     let mut score: i32 = 0;
+
+    if !board.king_exists(board.active_color) {
+        return -piece_value(PieceKind::King);
+    }
+    
+    if !board.king_exists(board.active_color.invert()) {
+        return piece_value(PieceKind::King);
+    }
     
     for piece in board.ocuppied_squares() {      
         if piece.color == board.active_color {

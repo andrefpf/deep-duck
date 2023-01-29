@@ -105,7 +105,7 @@ impl App {
     }
 
     fn try_movement(&mut self, coords: &str) {
-        let decoded = App::decode_positions(&coords);
+        let decoded = App::decode_positions(coords);
 
         if decoded.is_none() {
             App::invalid();
@@ -124,7 +124,7 @@ impl App {
     }
 
     fn analyze_movement(&mut self, coords: &str) {
-        let decoded = App::decode_positions(&coords);
+        let decoded = App::decode_positions(coords);
 
         if decoded.is_none() {
             App::invalid();
@@ -135,8 +135,8 @@ impl App {
 
         if let Some(movement) = Movement::try_movement(&self.board, origin, target, duck) {
             let tmp_board = self.board.copy_movement(movement);
-            let done = -evaluate(&tmp_board, self.depth-1);
-            let expected = evaluate(&self.board, self.depth);
+            let done = -evaluate(&tmp_board, self.depth-1).score;
+            let expected = evaluate(&self.board, self.depth).score;
             App::compare_scores(done, expected)
         } else {
             App::invalid_movement();
@@ -179,9 +179,11 @@ impl App {
     }
 
     fn show_evaluation(&self) {
+        let evaluation = evaluate(&self.board, self.depth);
+
         let score = match self.board.active_color {
-            Color::White => evaluate(&self.board, self.depth),
-            Color::Black => -evaluate(&self.board, self.depth),
+            Color::White => evaluation.score,
+            Color::Black => -evaluation.score,
             _ => 0,
         };
 
@@ -198,11 +200,15 @@ impl App {
             1_000_000 ..           => "●●●●●●●●●●●●●●●●●●●●",
         };
 
-        match score {
-            1_000_000.. => println!("White have a forced duckmate"),
-            ..= -1_000_000 => println!("Black have a forced duckmate"),
-            _ => println!("Centipawns: {}", score/100),
-        };
+        if score >= 1_000_000 {
+            println!("White has mate in {}", evaluation.depth)
+        }
+        else if score <= -1_000_000 {
+            println!("Black has mate in {}", evaluation.depth)
+        }
+        else {
+            println!("Points: {}", score/100)
+        }
         println!("{}", bar);
     }
 
