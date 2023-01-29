@@ -64,15 +64,20 @@ fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) 
     }
     
     let mut prune = prune;
-    let mut best = Evaluation { movement: None, score:  -i32::MAX , depth:0};
+    let mut best = Evaluation { movement: None, score: -i32::MAX, depth:0 };
 
+    // One thing to consider here. With the cache enabled the results may be different.
+    // I realized it is not wrong, but it is because the depth of the search virtually 
+    // increases when a position repeats in the same search.
     if let Some(evaluation) = cache.get(board) {
-        if evaluation.score >= prune.beta && evaluation.depth >= depth {
-            return Evaluation{movement: evaluation.movement, score: prune.beta, depth};
+        if (evaluation.score >= prune.beta) && (evaluation.depth >= depth) {
+            return Evaluation{score: prune.beta, ..evaluation};
         }
 
-        prune.alpha = evaluation.score;        
-        best = evaluation;
+        if evaluation.depth >= depth {
+            prune.alpha = evaluation.score;        
+            best = evaluation;
+        }
     }
 
     let mut simple_movements = Movement::avaliable_moves(board);
@@ -86,22 +91,26 @@ fn _search(board: &Board, depth: usize, prune: Prune, cache: &mut ZobristCache) 
         let evaluation = duck_search(board, depth-1, prune.invert(), cache, movement);
 
         if evaluation.score >= prune.beta {
-            best = Evaluation{movement: evaluation.movement, score: prune.beta, depth: evaluation.depth + 1};
-            cache.insert(board, best);
+            best = Evaluation{score: prune.beta, ..evaluation};
+            break
+        }
+
+        let is_mate = evaluation.score >= piece_value(PieceKind::King);
+
+        if is_mate && (evaluation.depth < best.depth) {
+            prune.alpha = evaluation.score;
+            best = evaluation;
             break;
         }
 
-        let better_score = evaluation.score > prune.alpha;
-        let better_mate = (evaluation.depth < best.depth) && (evaluation.score >= piece_value(PieceKind::King));
-
-        if better_score || better_mate {
+        if evaluation.score > prune.alpha {
             prune.alpha = evaluation.score;
             best = evaluation;
-            cache.insert(board, best);
         }
     }
 
     best.depth += 1;
+    cache.insert(board, best);
     best
 }
 

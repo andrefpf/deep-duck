@@ -65,6 +65,7 @@ impl App {
     }
 
     pub fn run(&mut self, command: Command) {
+        let start = Instant::now();
         match command {
             Command::Help => self.print_help(),
             Command::Board => self.print_board(),
@@ -80,6 +81,8 @@ impl App {
             Command::Invalid => App::invalid(),
             Command::Exit | Command::Empty => (),
         }
+        let duration = start.elapsed();
+        println!("Time elapsed: {:?}", duration);
     }
 
     fn decode_positions(coords: &str) -> Option<(Position, Position, Position)> {
@@ -182,9 +185,7 @@ impl App {
     }
 
     fn show_evaluation(&mut self) {
-        let start = Instant::now();
         let evaluation = evaluate_cached(&self.board, self.depth, &mut self.cache);
-        let duration = start.elapsed();
 
         let score = match self.board.active_color {
             Color::White => evaluation.score,
@@ -215,7 +216,6 @@ impl App {
             println!("Points: {}", score/100)
         }
         println!("{}", bar);
-        println!("Time elapsed: {:?}", duration);
     }
 
     fn sugest_movement(&mut self) {
