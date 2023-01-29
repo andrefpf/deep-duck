@@ -7,6 +7,7 @@ use crate::engine::evaluate;
 use crate::evaluation::piece_value;
 use crate::pieces::PieceKind;
 use colored::Colorize;
+use std::time::Instant;
 
 #[derive(Debug)]
 pub enum Command {
@@ -179,7 +180,9 @@ impl App {
     }
 
     fn show_evaluation(&self) {
+        let start = Instant::now();
         let evaluation = evaluate(&self.board, self.depth);
+        let duration = start.elapsed();
 
         let score = match self.board.active_color {
             Color::White => evaluation.score,
@@ -210,6 +213,7 @@ impl App {
             println!("Points: {}", score/100)
         }
         println!("{}", bar);
+        println!("Time elapsed: {:?}", duration);
     }
 
     fn sugest_movement(&self) {
