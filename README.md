@@ -56,8 +56,12 @@ Here is an example of how you can use Deep Duck to evaluate a position for your 
 <img width=600 src="https://asciinema.org/a/sYA03LaN8LYyNNDTwL7EMSP8H.svg" /></a>
   
 ## How can I compile it?
-You will need Cargo. Then run this in your terminal: 
-
+You will need Cargo. If you don't have it installed just run the following command on your terminal (check out [here](https://doc.rust-lang.org/cargo/getting-started/installation.html) for more info):
+```
+  curl https://sh.rustup.rs -sSf | sh
+```
+Then run this in your terminal: 
+```
     cargo run --release
-
+```
 It is important to use the --release, because chess engine is a very time consuming task and every optimization is wellcome.
