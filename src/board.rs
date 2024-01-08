@@ -20,6 +20,7 @@ pub struct Board {
     pub duck: Option<Position>,
     pub move_counter: usize,
     pub active_color: Color,
+    pub history: Vec<[Option<Piece>; 64]>,
 }
 
 impl Board {
@@ -29,6 +30,7 @@ impl Board {
             duck: None,
             move_counter: 0,
             active_color: Color::White,
+            history: Default::default(),
         }
     }
 
@@ -91,6 +93,13 @@ impl Board {
     }
 
     pub fn make_movement(&mut self, movement: Movement) {
+
+        if movement.moved == PieceKind::Pawn || movement.captured.is_some() { // TODO add castling to condition
+            self.history = Default::default();
+        }else {
+            self.history.push(self.data);
+        }
+
         self.drag_piece(movement.origin, movement.target);
         self.place_duck(Some(movement.duck_target));
         self.update_color();
@@ -138,6 +147,25 @@ impl Board {
 
     fn update_color(&mut self) {
         self.active_color = self.active_color.invert();
+    }
+
+    pub fn is_threefold(&self) -> bool{
+        fn are_pieces_equal(data1: &[Option<Piece>; 64], data2: &[Option<Piece>; 64]) -> bool {
+            data1.iter().zip(data2.iter()).all(|(a, b)| a == b)
+        }
+
+        let mut count = 0;
+
+        for data_history in &self.history{
+            if are_pieces_equal(data_history, &self.data){
+                count += 1;
+                if count >= 2{
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
 

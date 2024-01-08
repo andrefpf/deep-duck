@@ -124,6 +124,9 @@ impl App {
             self.board.make_movement(movement);
             println!("{:?}", self.board);    
             println!("You moved: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
+            if self.board.is_threefold(){
+                println!("Threefold repetition reached")
+            }
         } else {
             App::invalid_movement();
         }
@@ -233,6 +236,9 @@ impl App {
             self.board.make_movement(movement);
             println!("{:?}", self.board);
             println!("Computer moved: {:?} to {:?} and duck to {:?}", movement.origin, movement.target, movement.duck_target);
+            if self.board.is_threefold(){
+                println!("Threefold repetition reached")
+            }
         } else {
             println!("There are no movements for this position.");
         }

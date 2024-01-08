@@ -8,7 +8,7 @@ pub enum Color {
     Yellow,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Piece {
     pub pos: Position,
     pub color: Color,
